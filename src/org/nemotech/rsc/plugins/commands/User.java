@@ -1,6 +1,7 @@
 package org.nemotech.rsc.plugins.commands;
 
 import org.nemotech.rsc.client.mudclient;
+import org.nemotech.rsc.Constants;
 import org.nemotech.rsc.model.player.Player;
 import org.nemotech.rsc.plugins.Plugin;
 import org.nemotech.rsc.plugins.listeners.action.CommandListener;
@@ -10,8 +11,16 @@ public class User extends Plugin implements CommandListener {
     @Override
     public void onCommand(String command, String[] args, Player player) {
         if(command.equals("help")) {
-            mudclient.getInstance().showAlert("@yel@Single Player RSC Help % %" + "@whi@Type ::stuck if your character gets stuck. % "
-                + "Type ::pos to list your current location in the world. % Type ::mapedit to bring up the real time map editor", false);
+            mudclient.getInstance().showAlert("@yel@Single Player RSC Help % %" +
+                "@whi@Type ::stuck if your character gets stuck. % " +
+                "Type ::pos to list your current location in the world. % " +
+                "Type ::xprate to see your current XP rate. % " +
+                "Type ::mapedit to bring up the real time map editor", false);
+            return;
+        }
+        if(command.equals("xprate") || command.equals("xp")) {
+            int rate = Constants.EXPERIENCE_MULTIPLIER;
+            player.getSender().sendMessage("@whi@Your XP rate is @yel@" + rate + "x@que@");
             return;
         }
         if(command.equals("stuck")) {

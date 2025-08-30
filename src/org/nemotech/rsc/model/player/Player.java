@@ -1039,29 +1039,32 @@ public final class Player extends Mob {
             getSender().sendStat(i);
         }
 
-        inventory.sort();
-        ListIterator<InvItem> iterator = inventory.iterator();
-        if(!isSkulled()) {
-            for(int i = 0;i < 3 && iterator.hasNext();i++) {
-                if((iterator.next()).getDef().isStackable()) {
-                    iterator.previous();
-                    break;
+        // Only drop items if the player dies in the wilderness
+        if (getLocation().inWilderness()) {
+            inventory.sort();
+            ListIterator<InvItem> iterator = inventory.iterator();
+            if(!isSkulled()) {
+                for(int i = 0;i < 3 && iterator.hasNext();i++) {
+                    if((iterator.next()).getDef().isStackable()) {
+                        iterator.previous();
+                        break;
+                    }
                 }
             }
-        }
-        if(activatedPrayers[8] && iterator.hasNext()) {
-            if(((InvItem)iterator.next()).getDef().isStackable()) {
-                iterator.previous();
+            if(activatedPrayers[8] && iterator.hasNext()) {
+                if(((InvItem)iterator.next()).getDef().isStackable()) {
+                    iterator.previous();
+                }
             }
-        }
-        for(int slot = 0;iterator.hasNext();slot++) {
-            InvItem item = (InvItem)iterator.next();
-            if(item.isWielded()) {
-                item.setWield(false);
-                updateWornItems(item.getWieldableDef().getWieldPos(), appearance.getSprite(item.getWieldableDef().getWieldPos()));
+            for(int slot = 0;iterator.hasNext();slot++) {
+                InvItem item = (InvItem)iterator.next();
+                if(item.isWielded()) {
+                    item.setWield(false);
+                    updateWornItems(item.getWieldableDef().getWieldPos(), appearance.getSprite(item.getWieldableDef().getWieldPos()));
+                }
+                iterator.remove();
+                world.registerItem(new Item(item.getID(), getX(), getY(), item.getAmount(), null));
             }
-            iterator.remove();
-            world.registerItem(new Item(item.getID(), getX(), getY(), item.getAmount(), null));
         }
         removeSkull();
         world.registerItem(new Item(20, getX(), getY(), 1, null));
@@ -1709,17 +1712,7 @@ public final class Player extends Mob {
     }
 
     public void incExp(int i, double amount, boolean useFatigue, boolean multiplied) {
-        if(useFatigue) {
-            if(fatigue >= 100) {
-                getSender().sendMessage("@gre@You are too tired to gain experience, get some rest!");
-                return;
-            }
-            if(fatigue >= 96) {
-                getSender().sendMessage("@gre@You start to feel tired, maybe you should rest soon");
-            }
-            fatigue++;
-            getSender().sendFatigue(fatigue);
-        }
+        // Fatigue disabled: ignore fatigue checks and increments entirely
         if(multiplied)
             amount *= Constants.EXPERIENCE_MULTIPLIER;
         exp[i] += amount;

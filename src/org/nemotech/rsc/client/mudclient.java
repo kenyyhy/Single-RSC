@@ -233,6 +233,10 @@ public class mudclient extends Shell {
     private int controlButtonAppearanceBottom1;
     private int controlButtonAppearanceBottom2;
     private int controlButtonAppearanceAccept;
+    private int controlButtonAppearanceXP1;
+    private int controlButtonAppearanceXP2;
+    private int controlTextAppearanceXPRate;
+    private int appearanceXPRate;
     public int logoutTimeout;
     private int loginTimer;
     private int npcCombatModelArray2[] = {
@@ -519,6 +523,7 @@ public class mudclient extends Shell {
         selectedSpell = -1;
         showOptionMenu = false;
         playerStatCurrent = new int[playerStatCount];
+        appearanceXPRate = org.nemotech.rsc.Constants.EXPERIENCE_MULTIPLIER;
         teleportBubbleType = new int[50];
         showDialogShop = false;
         shopItem = new int[256];
@@ -1138,6 +1143,8 @@ public class mudclient extends Shell {
         panelAppearance = new Menu(surface, 100);
         int x = (gameWidth / 2);
         int y = 24;
+        // Ensure the XP rate shown reflects the current saved/runtime value
+        appearanceXPRate = org.nemotech.rsc.Constants.EXPERIENCE_MULTIPLIER;
         panelAppearance.addText(x, y, "Please design Your Character", 4, true);
         panelAppearance.addText(x - 55, y + 110, "Front", 3, true);
         panelAppearance.addText(x, y + 110, "Side", 3, true);
@@ -1187,6 +1194,17 @@ public class mudclient extends Shell {
         controlButtonAppearanceBottom1 = panelAppearance.addButton((x + xoff) - 40, y, 20, 20);
         panelAppearance.addSprite(x + xoff + 40, y, Menu.baseSpriteStart + 6);
         controlButtonAppearanceBottom2 = panelAppearance.addButton(x + xoff + 40, y, 20, 20);
+        // XP Rate row
+        y += 50;
+        panelAppearance.addBoxRounded(x - xoff, y, 53, 41);
+        panelAppearance.addText(x - xoff, y - 8, "XP", 1, true);
+        controlTextAppearanceXPRate = panelAppearance.addText(x - xoff, y + 8, appearanceXPRate + "x", 1, true);
+        panelAppearance.addSprite(x - xoff - 40, y, Menu.baseSpriteStart + 7);
+        controlButtonAppearanceXP1 = panelAppearance.addButton(x - xoff - 40, y, 20, 20);
+        panelAppearance.addSprite((x - xoff) + 40, y, Menu.baseSpriteStart + 6);
+        controlButtonAppearanceXP2 = panelAppearance.addButton((x - xoff) + 40, y, 20, 20);
+
+        // Accept button
         y += 82;
         y -= 35;
         panelAppearance.addButtonBackground(x, y, 200, 30);
@@ -3929,6 +3947,24 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
         if (panelAppearance.isClicked(controlButtonAppearanceBottom2)) {
             appearanceBottomColour = (appearanceBottomColour + 1) % characterTopBottomColours.length;
         }
+        if (panelAppearance.isClicked(controlButtonAppearanceXP1)) {
+            // Decrease by 1, clamp to 1
+            int step = 1;
+            int next = appearanceXPRate - step;
+            if (next < 1) next = 1;
+            appearanceXPRate = next;
+            org.nemotech.rsc.Constants.EXPERIENCE_MULTIPLIER = appearanceXPRate;
+            panelAppearance.updateText(controlTextAppearanceXPRate, appearanceXPRate + "x");
+        }
+        if (panelAppearance.isClicked(controlButtonAppearanceXP2)) {
+            // Increase by 1, clamp to 50
+            int step = 1;
+            int next = appearanceXPRate + step;
+            if (next > 50) next = 50;
+            appearanceXPRate = next;
+            org.nemotech.rsc.Constants.EXPERIENCE_MULTIPLIER = appearanceXPRate;
+            panelAppearance.updateText(controlTextAppearanceXPRate, appearanceXPRate + "x");
+        }
         if (panelAppearance.isClicked(controlButtonAppearanceAccept)) {
             ActionManager.get(AppearanceHandler.class).handleAppearanceChange(appearanceHeadGender, appearanceHeadType, appearanceBodyGender, appearance2Colour, appearanceHairColour, appearanceTopColour, appearanceBottomColour, appearanceSkinColour);
             surface.blackScreen();
@@ -4959,7 +4995,9 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
 
             surface.drawString("Quest Points:@yel@" + playerQuestPoints, (uiX + uiWidth / 2) - 5, i1 - 13, 1, 0xffffff);
             i1 += 12;
+            // Fatigue (left) and XP rate (right) on the same row
             surface.drawString("Fatigue: @yel@" + statFatigue + "%", uiX + 5, i1 - 13, 1, 0xffffff);
+            surface.drawString("XP rate: @yel@" + org.nemotech.rsc.Constants.EXPERIENCE_MULTIPLIER + "x", (uiX + uiWidth / 2) - 5, i1 - 13, 1, 0xffffff);
             i1 += 8;
             surface.drawString("Equipment Status", uiX + 5, i1, 3, 0xffff00);
             i1 += 12;

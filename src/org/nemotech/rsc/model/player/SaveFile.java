@@ -36,6 +36,7 @@ public class SaveFile implements Serializable {
         male = true;
         applicationWidth = Constants.APPLICATION_WIDTH;
         applicationHeight = Constants.APPLICATION_HEIGHT;
+        xpRate = Constants.EXPERIENCE_MULTIPLIER;
     }
     
     public String password = "deprecated";
@@ -48,6 +49,7 @@ public class SaveFile implements Serializable {
     public int questPoints;
     public int applicationWidth;
     public int applicationHeight;
+    public int xpRate;
     
     public int[] expStats;
     public int[] curStats;
@@ -73,6 +75,11 @@ public class SaveFile implements Serializable {
         player.setGameSettings(gameSettings);
         player.setAppearanceData(appearance);
         player.setMale(male);
+        // Apply saved XP rate (fallback to default if missing)
+        if (xpRate <= 0) {
+            xpRate = Constants.EXPERIENCE_MULTIPLIER;
+        }
+        Constants.EXPERIENCE_MULTIPLIER = xpRate;
         player.setWornItems(player.getAppearance().getSprites());
         for(int i = 0; i < 18; i++) {
             player.setExp(i, expStats[i]);
@@ -117,6 +124,7 @@ public class SaveFile implements Serializable {
         gameSettings = player.getGameSettings();
         appearance = player.getAppearanceData();
         male = player.isMale();
+        xpRate = Constants.EXPERIENCE_MULTIPLIER;
         for(int i = 0; i < 18; i++) {
             expStats[i] = player.getExp(i);
             curStats[i] = player.getCurStat(i);
