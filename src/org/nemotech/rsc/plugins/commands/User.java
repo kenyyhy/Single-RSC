@@ -1,7 +1,6 @@
 package org.nemotech.rsc.plugins.commands;
 
 import org.nemotech.rsc.client.mudclient;
-import org.nemotech.rsc.Constants;
 import org.nemotech.rsc.model.player.Player;
 import org.nemotech.rsc.plugins.Plugin;
 import org.nemotech.rsc.plugins.listeners.action.CommandListener;
@@ -14,13 +13,9 @@ public class User extends Plugin implements CommandListener {
             mudclient.getInstance().showAlert("@yel@Single Player RSC Help % %" +
                 "@whi@Type ::stuck if your character gets stuck. % " +
                 "Type ::pos to list your current location in the world. % " +
-                "Type ::xprate to see your current XP rate. % " +
-                "Type ::mapedit to bring up the real time map editor", false);
-            return;
-        }
-        if(command.equals("xprate") || command.equals("xp")) {
-            int rate = Constants.EXPERIENCE_MULTIPLIER;
-            player.getSender().sendMessage("@whi@Your XP rate is @yel@" + rate + "x@que@");
+                "Type ::mapedit to bring up the real time map editor % " +
+                "Type ::speed <n> to set walk speed (1-30) % " +
+                "Type ::speed reset to return to normal speed", false);
             return;
         }
         if(command.equals("stuck")) {
@@ -54,6 +49,31 @@ public class User extends Plugin implements CommandListener {
                 sectorY = (y / 48) + 37;
             }
             player.getSender().sendMessage(String.format("@whi@X: %d Y: %d (Sector h%dx%dy%d)@que@", player.getX(), player.getY(), sectorH, sectorX, sectorY));
+            return;
+        }
+
+        if (command.equals("speed") || command.equals("walkspeed")) {
+            if (args.length == 0) {
+                int current = mudclient.getInstance().getWalkSpeedMultiplier();
+                player.getSender().sendMessage("@whi@Current walk speed: x" + current + "@que@");
+                player.getSender().sendMessage("@whi@Usage: ::speed <1-30> or ::speed reset@que@");
+                return;
+            }
+            // reset aliases
+            if ("reset".equalsIgnoreCase(args[0]) || "default".equalsIgnoreCase(args[0]) || "normal".equalsIgnoreCase(args[0])) {
+                mudclient.getInstance().setWalkSpeedMultiplier(1);
+                player.getSender().sendMessage("@whi@Walk speed reset to x1@que@");
+                return;
+            }
+            try {
+                int mult = Integer.parseInt(args[0]);
+                if (mult < 1) mult = 1;
+                if (mult > 30) mult = 30;
+                mudclient.getInstance().setWalkSpeedMultiplier(mult);
+                player.getSender().sendMessage("@whi@Walk speed set to x" + mult + "@que@");
+            } catch (NumberFormatException e) {
+                player.getSender().sendMessage("@red@Invalid number. Usage: ::speed <1-30> or ::speed reset@que@");
+            }
             return;
         }
     }

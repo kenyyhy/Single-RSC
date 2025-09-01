@@ -101,6 +101,19 @@ public class mudclient extends Shell {
         return INSTANCE;
     }
 
+    // Walk speed multiplier for local player (1x = default)
+    private int walkSpeedMultiplier = 1;
+
+    public void setWalkSpeedMultiplier(int multiplier) {
+        if (multiplier < 1) multiplier = 1;
+        if (multiplier > 30) multiplier = 30;
+        this.walkSpeedMultiplier = multiplier;
+    }
+
+    public int getWalkSpeedMultiplier() {
+        return walkSpeedMultiplier;
+    }
+
     public String username;
 
     public void showAlert(String message, boolean big) {
@@ -1313,6 +1326,10 @@ public class mudclient extends Shell {
                 int j5 = 4;
                 if (j4 > 2) {
                     j5 = (j4 - 1) * 4;
+                }
+                // Apply local player walk speed multiplier
+                if (character == localPlayer && walkSpeedMultiplier > 1) {
+                    j5 *= walkSpeedMultiplier;
                 }
                 if (character.waypointsX[l2] - character.currentX > magicLoc * 3 || character.waypointsY[l2] - character.currentY > magicLoc * 3 || character.waypointsX[l2] - character.currentX < -magicLoc * 3 || character.waypointsY[l2] - character.currentY < -magicLoc * 3 || j4 > 8) {
                     character.currentX = character.waypointsX[l2];

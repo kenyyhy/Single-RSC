@@ -1,14 +1,6 @@
-# RSC-Single-Player
+<img width="1200" height="800" alt="rsmap" src="https://github.com/user-attachments/assets/6a91d2ac-2c7c-4ce1-a59c-4e7167c85e19" />
+
 RSC Single Player is a standalone single player RSC reproduction and sandbox. The application handles itself entirely and does not rely on a local server nor database.
-
-# Browser Version (Version 2.4)
-* https://nemotech.org/apps/rsc-js/ (Use username "test" for player account, or username "root" or "zoso" for dev account)
-
-# Latest Downloads
-* [Version 2.4.0 (Jan 14 2020)](https://github.com/sean-niemann/RSC-Single-Player/releases/download/2.4/RSC_Single_Player_v2.4.zip)
-* [Version 2.3.3 (Nov 30 2019)](https://github.com/sean-niemann/RSC-Single-Player/releases/download/2.3.3/RSC_Single_Player_v2.3.3.zip)
-* [Version 2.3.2 (Nov 25 2019)](https://github.com/sean-niemann/RSC-Single-Player/releases/download/2.3.2/RSC_Single_Player_v2.3.2.zip)
-* [Version 2.3.1 (Nov 20 2019)](https://github.com/sean-niemann/RSC-Single-Player/releases/download/2.3.1/RSC_Single_Player_v2.3.1.zip)
 
 # Requirements
 * Java 8 or newer
@@ -19,10 +11,13 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
 * Login and play
     
 # Game Information
+* UI Fixed
+* Teleports to different areas ::tele area
 * Music player replaced Social tab
 * New dynamic login screen
-* Experience modifier is set at 8x
+* Experience modifier is set at 1x-50x
 * All content, including all 50 quests
+* Updated where every os that has java 8 will be able to save the game properly
 * The game can now be resized to your preferred dimensions
 * Swap bank items by right clicking on the item
 * You can use multiple accounts, but do not use more than one account during the same session (you can have multiple windows open)
@@ -34,6 +29,3 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
 ![picture alt](https://nemotech.org/rsc/rsc-2.png "RSCSP2")
 ![picture alt](https://nemotech.org/rsc/rsc-3.png "RSCSP3")
 
-# Other Information
-
-Original post: https://forum.moparscape.org/rsc-server-development-discussion/52/release-rsc-single-player-v2-3/672287/
