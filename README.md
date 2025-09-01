@@ -28,6 +28,3 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
 ![picture alt](https://nemotech.org/rsc/rsc-2.png "RSCSP2")
 ![picture alt](https://nemotech.org/rsc/rsc-3.png "RSCSP3")
 
-# Other Information
-
-Original post: https://forum.moparscape.org/rsc-server-development-discussion/52/release-rsc-single-player-v2-3/672287/
