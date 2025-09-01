@@ -15,7 +15,7 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
 * Teleports to different areas ::tele area
 * Music player replaced Social tab
 * New dynamic login screen
-* Experience modifier is set at 50x
+* Experience modifier is set at 1x-50x
 * All content, including all 50 quests
 * Updated where every os that has java 8 will be able to save the game properly
 * The game can now be resized to your preferred dimensions
