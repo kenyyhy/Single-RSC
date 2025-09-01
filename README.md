@@ -19,10 +19,13 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
 * Login and play
     
 # Game Information
+* UI Fixed
+* Teleports to different areas ::tele <area>
 * Music player replaced Social tab
 * New dynamic login screen
-* Experience modifier is set at 8x
+* Experience modifier is set at 50x
 * All content, including all 50 quests
+* Updated where every os that has java 8 will be able to save the game properly
 * The game can now be resized to your preferred dimensions
 * Swap bank items by right clicking on the item
 * You can use multiple accounts, but do not use more than one account during the same session (you can have multiple windows open)
