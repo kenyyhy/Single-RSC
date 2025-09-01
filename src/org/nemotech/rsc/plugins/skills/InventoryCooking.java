@@ -1,6 +1,7 @@
 package org.nemotech.rsc.plugins.skills;
 
 import org.nemotech.rsc.util.Util;
+import org.nemotech.rsc.event.impl.BatchEvent;
 import org.nemotech.rsc.model.player.InvItem;
 import org.nemotech.rsc.model.player.Player;
 import static org.nemotech.rsc.plugins.Plugin.addItem;
@@ -73,21 +74,32 @@ public class InventoryCooking implements InvUseOnItemListener, InvUseOnItemExecu
                 player.message("You need level 35 cooking to do this");
                 return;
             }
-            if (player.getInventory().contains(item1)
-                    && player.getInventory().contains(item2)) {
-                int rand = Util.random(0, 4);
-                if (rand == 2) {
-                    player.incExp(7, 55, true);
-                    player.getInventory().add(new InvItem(180));
-                    player.message("You mix the grapes, and accidentally create Bad wine!");
-                } else {
-                    player.incExp(7, 110, true);
-                    player.getInventory().add(new InvItem(142));
-                    player.message("You mix the grapes with the water and create wine!");
+            int grapes = player.getInventory().countId(143);
+            int waters = player.getInventory().countId(141);
+            int maxMake = Math.min(grapes, waters);
+            if (maxMake <= 0) return;
+            String[] countOpts = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+            int c = showMenu(player, countOpts);
+            if (player.isBusy() || c < 0 || c > 3) return;
+            final int batches = (c == 3 ? maxMake : Integer.parseInt(countOpts[c].replace("Make ", "")));
+            player.setBatchEvent(new BatchEvent(player, 650, batches) {
+                @Override
+                public void action() {
+                    if (!owner.getInventory().contains(item1) || !owner.getInventory().contains(item2)) { interrupt(); return; }
+                    int rand = Util.random(0, 4);
+                    if (rand == 2) {
+                        owner.incExp(7, 55, true);
+                        owner.getInventory().add(new InvItem(180));
+                        owner.message("You mix the grapes, and accidentally create Bad wine!");
+                    } else {
+                        owner.incExp(7, 110, true);
+                        owner.getInventory().add(new InvItem(142));
+                        owner.message("You mix the grapes with the water and create wine!");
+                    }
+                    owner.getInventory().remove(141, 1);
+                    owner.getInventory().remove(143, 1);
                 }
-                player.getInventory().remove(141, 1);
-                player.getInventory().remove(143, 1);
-            }
+            });
         }
         else if (isWaterItem(item1) && item2.getID() == 136 || item1.getID() == 136 && isWaterItem(item2)) {
             int waterContainer = isWaterItem(item1) ? item1.getID() : item2.getID();
@@ -110,19 +122,33 @@ public class InventoryCooking implements InvUseOnItemListener, InvUseOnItemExecu
             else if(option == 3) {
                 productID = 1104;
             }
-            if (removeItem(player, new InvItem(waterContainer), new InvItem(136)) && productID > -1) {
-                int emptyContainer = 0;
-                
-                if(waterContainer== 50)
-                    emptyContainer = 21;
-                else if(waterContainer == 141) 
-                    emptyContainer = 140;
-                
-                addItem(player, 135, 1);
-                addItem(player, emptyContainer, 1);
-                addItem(player, productID, 1);
-                
-                player.message("You mix the water and flour to make some " + new InvItem(productID, 1).getDef().getName().toLowerCase());
+            if (productID > -1) {
+                int flour = player.getInventory().countId(136);
+                int waters = player.getInventory().countId(waterContainer);
+                int maxMake = Math.min(flour, waters);
+                if (maxMake <= 0) return;
+                String[] countOpts = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+                int c = showMenu(player, countOpts);
+                if (player.isBusy() || c < 0 || c > 3) return;
+                final int batches = (c == 3 ? maxMake : Integer.parseInt(countOpts[c].replace("Make ", "")));
+                final int wc = waterContainer;
+                final int prod = productID;
+                player.setBatchEvent(new BatchEvent(player, 650, batches) {
+                    @Override
+                    public void action() {
+                        if (!(owner.getInventory().contains(new InvItem(wc)) && owner.getInventory().contains(new InvItem(136)))) { interrupt(); return; }
+                        int emptyContainer = 0;
+                        if(wc== 50) emptyContainer = 21; else if(wc == 141) emptyContainer = 140;
+                        if (removeItem(owner, new InvItem(wc), new InvItem(136))) {
+                            addItem(owner, 135, 1);
+                            addItem(owner, emptyContainer, 1);
+                            addItem(owner, prod, 1);
+                            owner.message("You mix the water and flour to make some " + new InvItem(prod, 1).getDef().getName().toLowerCase());
+                        } else {
+                            interrupt();
+                        }
+                    }
+                });
             }
         } else if(isValidCooking(item1, item2)) {
             handleCombineCooking(player, item1, item2);
@@ -141,18 +167,36 @@ public class InventoryCooking implements InvUseOnItemListener, InvUseOnItemExecu
             p.message("You need level " + combine.requiredLevel + " cooking to do this");
             return;
         }
-        if(removeItem(p, combine.itemID, 1) && removeItem(p, combine.itemIDOther, 1)) {
-            if(combine.messages.length > 1)
-                message(p, combine.messages[0]);
-            else
-                p.message(combine.messages[0]);
-            
-            addItem(p, combine.resultItem, 1);
-            p.incExp(7, combine.experience, true);
-            
-            if(combine.messages.length > 1)
-                p.message(combine.messages[1]);
-        }
+        final int itemIdA = combine.itemID;
+        final int itemIdB = combine.itemIDOther;
+        final int resultId = combine.resultItem;
+        final int expEach = combine.experience;
+        final String[] msgs = combine.messages;
+        int haveA = p.getInventory().countId(itemIdA);
+        int haveB = p.getInventory().countId(itemIdB);
+        int maxMake = Math.min(haveA, haveB);
+        if (maxMake <= 0) return;
+        String[] countOpts = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+        int c = showMenu(p, countOpts);
+        if (p.isBusy() || c < 0 || c > 3) return;
+        final int batches = (c == 3 ? maxMake : Integer.parseInt(countOpts[c].replace("Make ", "")));
+        p.setBatchEvent(new BatchEvent(p, 650, batches) {
+            @Override
+            public void action() {
+                if(removeItem(p, itemIdA, 1) && removeItem(p, itemIdB, 1)) {
+                    if(msgs.length > 1)
+                        message(p, msgs[0]);
+                    else
+                        p.message(msgs[0]);
+                    addItem(p, resultId, 1);
+                    p.incExp(7, expEach, true);
+                    if(msgs.length > 1)
+                        p.message(msgs[1]);
+                } else {
+                    interrupt();
+                }
+            }
+        });
     }
     
     public boolean isValidCooking(InvItem itemOne, InvItem itemTwo) {

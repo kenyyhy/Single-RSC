@@ -17,6 +17,7 @@ import org.nemotech.rsc.model.World;
 
 import static org.nemotech.rsc.plugins.Plugin.message;
 import static org.nemotech.rsc.plugins.Plugin.showBubble;
+import static org.nemotech.rsc.plugins.Plugin.showMenu;
 import org.nemotech.rsc.plugins.listeners.action.InvUseOnItemListener;
 import org.nemotech.rsc.plugins.listeners.action.InvUseOnObjectListener;
 import org.nemotech.rsc.plugins.listeners.executive.InvUseOnItemExecutiveListener;
@@ -74,9 +75,26 @@ public class Crafting implements InvUseOnItemListener,
                                     owner.setMenuHandler(new MenuHandler(options) {
                                         public void handleReply(final int option,
                                                 final String reply) {
+                                            // Ask how many to make
+                                            int barsAvailable = owner.getInventory().countId(item.getID());
+                                            int maxMake = barsAvailable;
+                                            if (option > 0) {
+                                                int gemCount = owner.getInventory().countId(gems[option]);
+                                                maxMake = Math.min(barsAvailable, gemCount);
+                                            }
+                                            if (maxMake <= 0) {
+                                                owner.message("You don't have the required materials.");
+                                                return;
+                                            }
+                                            String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+                                            int choice = showMenu(owner, countOptions);
+                                            if (owner.isBusy() || choice < 0 || choice > 3) {
+                                                return;
+                                            }
+                                            final int makeCount = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Make ", "")));
                                             owner.setBatchEvent(new BatchEvent(
                                                     owner, 1400,
-                                                    Formulae.getRepeatTimes(owner, 12)) {
+                                                    makeCount) {
                                                 public void action() {
                                                     if(option < 0 || option > (Constants.MEMBER_WORLD ? 5 : 4)) {
                                                         owner.checkAndInterruptBatchEvent();
@@ -180,8 +198,20 @@ public class Crafting implements InvUseOnItemListener,
                                         return;
                                     }
 
+                                    // Ask how many symbols to make
+                                    int maxMake = owner.getInventory().countId(item.getID());
+                                    if (maxMake <= 0) {
+                                        owner.message("You don't have the required materials.");
+                                        return;
+                                    }
+                                    String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+                                    int choice = showMenu(owner, countOptions);
+                                    if (owner.isBusy() || choice < 0 || choice > 3) {
+                                        return;
+                                    }
+                                    final int makeCount = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Make ", "")));
                                     owner.setBatchEvent(new BatchEvent(owner, 1400,
-                                            Formulae.getRepeatTimes(owner, 12)) {
+                                            makeCount) {
 
                                         @Override
                                         public void action() {
@@ -286,7 +316,18 @@ public class Crafting implements InvUseOnItemListener,
         if(gemDef == null) {
             return false;
         }
-        player.setBatchEvent(new BatchEvent(player, 650, Formulae.getRepeatTimes(player, 12)) {
+        // Ask how many gems to cut
+        int maxMake = player.getInventory().countId(gem.getID());
+        if (maxMake <= 0) {
+            return true;
+        }
+        String[] countOptions = new String[] {"Cut 1", "Cut 5", "Cut 10", "Cut All"};
+        int choice = showMenu(player, countOptions);
+        if (player.isBusy() || choice < 0 || choice > 3) {
+            return true;
+        }
+        final int makeCount = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Cut ", "")));
+        player.setBatchEvent(new BatchEvent(player, 650, makeCount) {
             @Override
             public void action() {
                 if(owner.getCurStat(12) < gemDef.getReqLevel()) {
@@ -359,12 +400,27 @@ public class Crafting implements InvUseOnItemListener,
                                     + result.getDef().getName() + ".");
                             return;
                         }
-                        if(owner.getInventory().remove(glass) > -1) {
-                            owner.message(
-                                    "You make a " + result.getDef().getName());
-                            owner.getInventory().add(result);
-                            owner.incExp(12, exp, true);
-                        }
+                        // Choose count for glass blowing
+                        int maxMake = owner.getInventory().countId(glass.getID());
+                        if (maxMake <= 0) return;
+                        String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+                        int choice = showMenu(owner, countOptions);
+                        if (owner.isBusy() || choice < 0 || choice > 3) return;
+                        final int batches = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+                        final InvItem resCopy = result;
+                        final int expEach = exp;
+                        owner.setBatchEvent(new BatchEvent(owner, 650, batches) {
+                            @Override
+                            public void action() {
+                                if(owner.getInventory().remove(glass) > -1) {
+                                    owner.message("You make a " + resCopy.getDef().getName());
+                                    owner.getInventory().add(new InvItem(resCopy.getID(), 1));
+                                    owner.incExp(12, expEach, true);
+                                } else {
+                                    interrupt();
+                                }
+                            }
+                        });
                     }
                 });
                 owner.getSender().sendMenu(options);
@@ -417,11 +473,27 @@ public class Crafting implements InvUseOnItemListener,
                             owner.message("You need a crafting level of " + reqLvl + " to make " + result.getDef().getName() + ".");
                             return;
                         }
-                        if(owner.getInventory().remove(leather) > -1) {
-                            owner.message("You make some " + result.getDef().getName());
-                            owner.getInventory().add(result);
-                            owner.incExp(12, exp, true);
-                        }
+                        // Choose count for leather crafting
+                        int maxMake = owner.getInventory().countId(leather.getID());
+                        if (maxMake <= 0) return;
+                        String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+                        int choice = showMenu(owner, countOptions);
+                        if (owner.isBusy() || choice < 0 || choice > 3) return;
+                        final int batches = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+                        final InvItem resCopy = result;
+                        final int expEach = exp;
+                        owner.setBatchEvent(new BatchEvent(owner, 650, batches) {
+                            @Override
+                            public void action() {
+                                if(owner.getInventory().remove(leather) > -1) {
+                                    owner.message("You make some " + resCopy.getDef().getName());
+                                    owner.getInventory().add(new InvItem(resCopy.getID(), 1));
+                                    owner.incExp(12, expEach, true);
+                                } else {
+                                    interrupt();
+                                }
+                            }
+                        });
                     }
                 });
                 owner.getSender().sendMenu(options);
@@ -461,7 +533,18 @@ public class Crafting implements InvUseOnItemListener,
                 return false;
         }
         final int newId = newID;
-        player.setBatchEvent(new BatchEvent(player, 650, Formulae.getRepeatTimes(player, 12)) {
+        // Ask how many to string
+        int maxMake = Math.min(player.getInventory().countId(207), player.getInventory().countId(item.getID()));
+        if (maxMake <= 0) {
+            return true;
+        }
+        String[] countOptions = new String[] {"String 1", "String 5", "String 10", "String All"};
+        int choice = showMenu(player, countOptions);
+        if (player.isBusy() || choice < 0 || choice > 3) {
+            return true;
+        }
+        final int makeCount = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("String ", "")));
+        player.setBatchEvent(new BatchEvent(player, 650, makeCount) {
             @Override
             public void action() {
                 if(owner.getInventory().countId(item.getID()) <= 0 || owner.getInventory().countId(207) <= 0) {

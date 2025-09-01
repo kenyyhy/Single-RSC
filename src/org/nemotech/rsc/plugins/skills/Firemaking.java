@@ -1,11 +1,13 @@
 package org.nemotech.rsc.plugins.skills;
 
 import org.nemotech.rsc.event.DelayedEvent;
+import org.nemotech.rsc.event.impl.BatchEvent;
 import org.nemotech.rsc.model.player.InvItem;
 import org.nemotech.rsc.model.GameObject;
 import org.nemotech.rsc.model.player.Player;
 import org.nemotech.rsc.Constants;
 import org.nemotech.rsc.util.Util;
+import org.nemotech.rsc.util.Formulae;
 import org.nemotech.rsc.model.Item;
 import org.nemotech.rsc.model.landscape.ActiveTile;
 import org.nemotech.rsc.plugins.Plugin;
@@ -81,7 +83,7 @@ public class Firemaking extends Plugin implements InvUseOnGroundItemListener, In
                     player.getSender().sendMessage("You can only light these logs on a members server");
                     return;
                 }
-                handleFireMaking(player, invItem, groundItem, (int) Math.ceil(player.getMaxStat(FIREMAKING) / 10), logType);
+                handleFireMaking(player, invItem, groundItem, Formulae.getRepeatTimes(player, FIREMAKING), logType);
             }
         }
     }
@@ -97,47 +99,61 @@ public class Firemaking extends Plugin implements InvUseOnGroundItemListener, In
         return Util.random(0, difference + 1) != 0;
     }
     
-    void handleFireMaking(Player player, InvItem myItem, final Item groundItem, int tries, int[] logType) {
-        int retries = --tries;
-        int level = 0;
-        int exp = 2;
-        int length = 3;
+    void handleFireMaking(final Player player, InvItem myItem, final Item groundItem, int tries, final int[] logType) {
+        final int level = 0;
+        final int exp = 2;
+        final int length = 3;
         final ActiveTile tile = world.getTile(groundItem.getLocation());
-        if(tile.hasGameObject()) {
+
+        if (tile.hasGameObject()) {
             player.getSender().sendMessage("You cannot do that here, please move to a new area");
             return;
         }
-        if(player.getCurStat(FIREMAKING) < logType[level]) {
+        if (player.getCurStat(FIREMAKING) < logType[level]) {
             player.getSender().sendMessage("You need at least " + logType[level] + " firemaking to light these logs");
             return;
         }
+
         player.setBusy(true);
         showBubble(player, TINDERBOX);
         player.getSender().sendMessage("You attempt to light the logs...");
-        sleep(1500);
-        if(lightLogs(player.getCurStat(FIREMAKING), logType[level])) {
-            player.getSender().sendMessage("They catch fire and start to burn");
-            world.unregisterItem(groundItem);
-            final GameObject fire = new GameObject(groundItem.getLocation(), 97, 0, 0);
-            world.registerGameObject(fire);
-            world.getDelayedEventHandler().add(new DelayedEvent(null, logType[length] * 1000) {
-                @Override
-                public void run() {
-                    if (tile.hasGameObject() && tile.getGameObject().equals(fire)) {
-                        world.unregisterGameObject(fire);
-                        world.registerItem(new Item(181, groundItem.getX(), groundItem.getY(), 1, null));
-                    }
+
+        final int repeatTimes = Math.max(1, tries);
+        player.setBatchEvent(new BatchEvent(player, 1500, repeatTimes) {
+            @Override
+            public void action() {
+                // If tile became occupied, stop batching
+                if (tile.hasGameObject()) {
+                    player.getSender().sendMessage("You cannot do that here, please move to a new area");
+                    player.setBusy(false);
+                    interrupt();
+                    return;
                 }
-            });
-            player.incExp(FIREMAKING, logType[exp], true);
-            player.setBusy(false);
-        } else {
-            player.getSender().sendMessage("You fail to light them");
-            player.setBusy(false);
-            if(retries > 0) {
-                handleFireMaking(player, myItem, groundItem, retries, logType);
+
+                if (lightLogs(player.getCurStat(FIREMAKING), logType[level])) {
+                    player.getSender().sendMessage("They catch fire and start to burn");
+                    world.unregisterItem(groundItem);
+                    final GameObject fire = new GameObject(groundItem.getLocation(), 97, 0, 0);
+                    world.registerGameObject(fire);
+                    world.getDelayedEventHandler().add(new DelayedEvent(null, logType[length] * 1000) {
+                        @Override
+                        public void run() {
+                            if (tile.hasGameObject() && tile.getGameObject().equals(fire)) {
+                                world.unregisterGameObject(fire);
+                                world.registerItem(new Item(181, groundItem.getX(), groundItem.getY(), 1, null));
+                            }
+                        }
+                    });
+                    player.incExp(FIREMAKING, logType[exp], true);
+                    player.setBusy(false);
+                    interrupt();
+                } else {
+                    player.getSender().sendMessage("You fail to light them");
+                    // Let BatchEvent schedule the next attempt (if any)
+                    player.setBusy(false);
+                }
             }
-        }
+        });
     }
 
     @Override

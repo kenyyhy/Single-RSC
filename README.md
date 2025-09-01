@@ -29,3 +29,8 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
 ![picture alt](https://nemotech.org/rsc/rsc-2.png "RSCSP2")
 ![picture alt](https://nemotech.org/rsc/rsc-3.png "RSCSP3")
 
+# Skill Batching
+- Core: Repeating skill actions use `BatchEvent` to schedule ticks and respect player busy timers.
+- Count: Prefer `Formulae.getRepeatTimes(player, <skill>)` for level-based batches, or use tool/selection-specific counts where that mirrors game design (e.g., pickaxe/axe tiers, make-x).
+- Pattern: `player.setBatchEvent(new BatchEvent(player, <delayMs>, <repeatCount>) { public void action() { /* attempt once; interrupt on success/depletion */ } });`
+- Notes: Avoid recursive retries; let `BatchEvent` pace attempts. Keep fatigue/inventory/availability checks inside `action()` and call `interrupt()` when the action should stop early.

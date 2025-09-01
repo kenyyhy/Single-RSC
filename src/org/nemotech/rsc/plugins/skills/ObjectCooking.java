@@ -7,6 +7,7 @@ import static org.nemotech.rsc.plugins.Plugin.message;
 import static org.nemotech.rsc.plugins.Plugin.npcTalk;
 import static org.nemotech.rsc.plugins.Plugin.removeItem;
 import static org.nemotech.rsc.plugins.Plugin.showBubble;
+import static org.nemotech.rsc.plugins.Plugin.showMenu;
 
 import java.util.Arrays;
 
@@ -102,7 +103,18 @@ public class ObjectCooking implements InvUseOnObjectListener, InvUseOnObjectExec
             }
             p.message(cookingOnMessage(p, item, object));
             showBubble(p, item);
-            p.setBatchEvent(new BatchEvent(p, 1500, Formulae.getRepeatTimes(p, 7)) {
+            // Choose how many to cook
+            int maxMake = p.getInventory().countId(item.getID());
+            if (maxMake <= 0) {
+                return;
+            }
+            String[] countOptions = new String[] {"Cook 1", "Cook 5", "Cook 10", "Cook All"};
+            int choice = showMenu(p, countOptions);
+            if (p.isBusy() || choice < 0 || choice > 3) {
+                return;
+            }
+            final int makeCount = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Cook ", "")));
+            p.setBatchEvent(new BatchEvent(p, 1500, makeCount) {
                 @Override
                 public void action() {
                     InvItem cookedFood = new InvItem(cookingDef.getCookedId());
@@ -144,15 +156,31 @@ public class ObjectCooking implements InvUseOnObjectListener, InvUseOnObjectExec
         return cookingDef != null && Arrays.binarySearch(ids, obj.getID()) >= 0;
     }
 
-    public void cookMethod(Player p, int itemID, int product, String... messages) {
-        if(hasItem(p, itemID, 1)) {
-            showBubble(p, new InvItem(itemID));
-            p.getSender().sendSound(SoundEffect.COOKING);
-            message(p, messages);
-            removeItem(p, itemID, 1);
-            addItem(p, product, 1);
-        } else {
+    public void cookMethod(final Player p, final int itemID, final int product, String... messages) {
+        int maxMake = p.getInventory().countId(itemID);
+        if (maxMake <= 0) {
             p.message("You don't have all the ingredients");
+            return;
+        }
+        String[] opts = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+        int choice = showMenu(p, opts);
+        if (p.isBusy() || choice < 0 || choice > 3) return;
+        int batches = (choice == 3 ? maxMake : Integer.parseInt(opts[choice].replace("Make ", "")));
+        p.setBatchEvent(new BatchEvent(p, 650, batches) {
+            @Override
+            public void action() {
+                if(hasItem(p, itemID, 1)) {
+                    showBubble(p, new InvItem(itemID));
+                    p.getSender().sendSound(SoundEffect.COOKING);
+                    removeItem(p, itemID, 1);
+                    addItem(p, product, 1);
+                } else {
+                    interrupt();
+                }
+            }
+        });
+        if (messages != null && messages.length > 0) {
+            message(p, messages);
         }
     }
     

@@ -14,6 +14,7 @@ import org.nemotech.rsc.model.player.InvItem;
 import org.nemotech.rsc.model.player.Player;
 import static org.nemotech.rsc.plugins.Plugin.FLETCHING;
 import static org.nemotech.rsc.plugins.Plugin.addItem;
+import static org.nemotech.rsc.plugins.Plugin.showMenu;
 import org.nemotech.rsc.plugins.listeners.executive.InvUseOnItemExecutiveListener;
 import org.nemotech.rsc.util.Formulae;
 
@@ -68,7 +69,18 @@ public class Fletching implements InvUseOnItemExecutiveListener {
         }
         final int amt = amount;
         final int xp = exp;
-        player.setBatchEvent(new BatchEvent(player, 650, Formulae.getRepeatTimes(player, FLETCHING)) {
+        // Choose number of batches (each batch consumes 'amt')
+        int maxBatches = Math.min(feathers.getAmount(), item.getAmount()) / Math.max(1, amt);
+        if (maxBatches <= 0) {
+            return true;
+        }
+        String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+        int choice = showMenu(player, countOptions);
+        if (player.isBusy() || choice < 0 || choice > 3) {
+            return true;
+        }
+        final int batches = (choice == 3 ? maxBatches : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+        player.setBatchEvent(new BatchEvent(player, 650, batches) {
             @Override
             public void action() {
                 if(owner.getInventory().countId(feathers.getID()) < 1) {
@@ -103,7 +115,18 @@ public class Fletching implements InvUseOnItemExecutiveListener {
             return false;
         }
 
-        player.setBatchEvent(new BatchEvent(player, 650, Formulae.getRepeatTimes(player, FLETCHING)) {
+        // Choose number of batches (each batch attaches up to 10 heads)
+        int maxBatches = Math.min(headlessArrows.getAmount(), arrowHeads.getAmount()) / 10;
+        if (maxBatches <= 0) {
+            return true;
+        }
+        String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+        int choice = showMenu(player, countOptions);
+        if (player.isBusy() || choice < 0 || choice > 3) {
+            return true;
+        }
+        final int batches = (choice == 3 ? maxBatches : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+        player.setBatchEvent(new BatchEvent(player, 650, batches) {
             @Override
             public void action() {
                 if (owner.getCurStat(9) < headDef.getReqLevel()) {
@@ -154,8 +177,18 @@ public class Fletching implements InvUseOnItemExecutiveListener {
             return false;
         }
 
-        player.setBatchEvent(new BatchEvent(player, 650, Formulae
-                .getRepeatTimes(player, FLETCHING)) {
+        // Choose number of bows to string
+        int maxBatches = Math.min(bowString.getAmount(), bow.getAmount());
+        if (maxBatches <= 0) {
+            return true;
+        }
+        String[] countOptions = new String[] {"String 1", "String 5", "String 10", "String All"};
+        int choice = showMenu(player, countOptions);
+        if (player.isBusy() || choice < 0 || choice > 3) {
+            return true;
+        }
+        final int batches = (choice == 3 ? maxBatches : Integer.parseInt(countOptions[choice].replace("String ", "")));
+        player.setBatchEvent(new BatchEvent(player, 650, batches) {
             @Override
             public void action() {
                 if (owner.getCurStat(9) < stringDef.getReqLevel()) {
@@ -235,8 +268,18 @@ public class Fletching implements InvUseOnItemExecutiveListener {
                             final int requiredLvl = reqLvl;
                             final int experience = exp;
                             final String cutMessages = cutMessage;
-                            player.setBatchEvent(new BatchEvent(player, 650, Formulae
-                                    .getRepeatTimes(player, FLETCHING)) {
+                            // Choose count for cutting
+                            int maxBatches = owner.getInventory().countId(log.getID());
+                            if (maxBatches <= 0) {
+                                return;
+                            }
+                            String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+                            int choice = showMenu(owner, countOptions);
+                            if (owner.isBusy() || choice < 0 || choice > 3) {
+                                return;
+                            }
+                            final int batches = (choice == 3 ? maxBatches : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+                            owner.setBatchEvent(new BatchEvent(owner, 650, batches) {
 
                                 @Override
                                 public void action() {
@@ -285,7 +328,18 @@ public class Fletching implements InvUseOnItemExecutiveListener {
                         final int requiredLvl = reqLvl;
                         final int experience = exp;
                         final String cutMessages = cutMessage;
-                        player.setBatchEvent(new BatchEvent(player, 650, Formulae.getRepeatTimes(player, FLETCHING)) {
+                        // Choose count for cutting
+                        int maxBatches = owner.getInventory().countId(log.getID());
+                        if (maxBatches <= 0) {
+                            return;
+                        }
+                        String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+                        int choice = showMenu(owner, countOptions);
+                        if (owner.isBusy() || choice < 0 || choice > 3) {
+                            return;
+                        }
+                        final int batches = (choice == 3 ? maxBatches : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+                        owner.setBatchEvent(new BatchEvent(owner, 650, batches) {
                             @Override
                             public void action() {
                                 if (owner.getCurStat(9) < requiredLvl) {

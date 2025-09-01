@@ -6,6 +6,8 @@ import static org.nemotech.rsc.plugins.Plugin.CRAFTING;
 import static org.nemotech.rsc.plugins.Plugin.addItem;
 import static org.nemotech.rsc.plugins.Plugin.message;
 import static org.nemotech.rsc.plugins.Plugin.removeItem;
+import static org.nemotech.rsc.plugins.Plugin.showMenu;
+import org.nemotech.rsc.event.impl.BatchEvent;
 import org.nemotech.rsc.plugins.listeners.action.InvUseOnItemListener;
 import org.nemotech.rsc.plugins.listeners.executive.InvUseOnItemExecutiveListener;
 
@@ -60,18 +62,36 @@ public class BattlestaffCrafting implements InvUseOnItemListener, InvUseOnItemEx
             p.message("You need level " + combine.requiredLevel + " crafting to do this");
             return;
         }
-        if(removeItem(p, combine.itemID, 1) && removeItem(p, combine.itemIDOther, 1)) {
-            if(combine.messages.length > 1)
-                message(p, combine.messages[0]);
-            else
-                p.message(combine.messages[0]);
-            
-            addItem(p, combine.resultItem, 1);
-            p.incExp(CRAFTING, combine.experience, true);
-            
-            if(combine.messages.length > 1)
-                p.message(combine.messages[1]);
-        }
+        int haveA = p.getInventory().countId(combine.itemID);
+        int haveB = p.getInventory().countId(combine.itemIDOther);
+        int maxMake = Math.min(haveA, haveB);
+        if (maxMake <= 0) return;
+        String[] countOpts = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+        int c = showMenu(p, countOpts);
+        if (p.isBusy() || c < 0 || c > 3) return;
+        final int batches = (c == 3 ? maxMake : Integer.parseInt(countOpts[c].replace("Make ", "")));
+        final int itemA = combine.itemID;
+        final int itemB = combine.itemIDOther;
+        final int result = combine.resultItem;
+        final int expEach = combine.experience;
+        final String[] msgs = combine.messages;
+        p.setBatchEvent(new BatchEvent(p, 650, batches) {
+            @Override
+            public void action() {
+                if(removeItem(p, itemA, 1) && removeItem(p, itemB, 1)) {
+                    if(msgs.length > 1)
+                        message(p, msgs[0]);
+                    else
+                        p.message(msgs[0]);
+                    addItem(p, result, 1);
+                    p.incExp(CRAFTING, expEach, true);
+                    if(msgs.length > 1)
+                        p.message(msgs[1]);
+                } else {
+                    interrupt();
+                }
+            }
+        });
     }
 
     @Override

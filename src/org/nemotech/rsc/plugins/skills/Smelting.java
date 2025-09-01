@@ -16,6 +16,7 @@ import static org.nemotech.rsc.plugins.Plugin.inArray;
 import static org.nemotech.rsc.plugins.Plugin.message;
 import static org.nemotech.rsc.plugins.Plugin.removeItem;
 import static org.nemotech.rsc.plugins.Plugin.showBubble;
+import static org.nemotech.rsc.plugins.Plugin.showMenu;
 import static org.nemotech.rsc.plugins.Plugin.sleep;
 import org.nemotech.rsc.plugins.listeners.action.InvUseOnObjectListener;
 import org.nemotech.rsc.plugins.listeners.executive.InvUseOnObjectExecutiveListener;
@@ -115,7 +116,18 @@ InvUseOnObjectExecutiveListener {
                 message(p, 1300, "you heat the steel bar into a liquid state",
                         "and pour it into your cannon ball mould",
                         "you then leave it to cool for a short while");
-                p.setBatchEvent(new BatchEvent(p, 2000, Formulae.getRepeatTimes(p, SMITHING)) {
+                // Choose how many cannonballs batches to make (1 steel bar each)
+                int maxMake = p.getInventory().countId(STEEL_BAR);
+                if (maxMake <= 0) {
+                    return;
+                }
+                String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+                int choice = showMenu(p, countOptions);
+                if (p.isBusy() || choice < 0 || choice > 3) {
+                    return;
+                }
+                final int makeCount = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+                p.setBatchEvent(new BatchEvent(p, 2000, makeCount) {
                     public void action() {
                         owner.incExp(SMITHING, 12.5, true);
                         owner.getInventory().replace(STEEL_BAR, MULTI_CANNON_BALL);
@@ -187,7 +199,20 @@ InvUseOnObjectExecutiveListener {
         }
 
         p.message(smeltString(smelt, item));
-        p.setBatchEvent(new BatchEvent(p, 1600, Formulae.getRepeatTimes(p, SMITHING)) {
+        // Choose how many bars to smelt this run
+        int primary = p.getInventory().countId(smelt.getID()) / Math.max(1, smelt.getOreAmount());
+        int secondary = smelt.getReqOreAmount() > 0 ? p.getInventory().countId(smelt.getReqOreId()) / smelt.getReqOreAmount() : Integer.MAX_VALUE;
+        int maxMake = Math.min(primary, secondary);
+        if (maxMake <= 0) {
+            return;
+        }
+        String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+        int choice = showMenu(p, countOptions);
+        if (p.isBusy() || choice < 0 || choice > 3) {
+            return;
+        }
+        final int makeCount = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+        p.setBatchEvent(new BatchEvent(p, 1600, makeCount) {
             public void action() {
                 if (owner.getFatigue() >= 7500) {
                     owner.message("You are too tired to smelt this ore");

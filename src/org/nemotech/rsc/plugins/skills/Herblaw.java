@@ -14,6 +14,7 @@ import org.nemotech.rsc.model.World;
 import static org.nemotech.rsc.plugins.Plugin.displayTeleportBubble;
 import static org.nemotech.rsc.plugins.Plugin.playerTalk;
 import static org.nemotech.rsc.plugins.Plugin.showBubble;
+import static org.nemotech.rsc.plugins.Plugin.showMenu;
 import org.nemotech.rsc.plugins.listeners.action.InvActionListener;
 import org.nemotech.rsc.plugins.listeners.action.InvUseOnItemListener;
 import org.nemotech.rsc.plugins.listeners.executive.InvActionExecutiveListener;
@@ -56,7 +57,18 @@ InvActionExecutiveListener, InvUseOnItemExecutiveListener {
             player.message("you need a higher herblaw level");
             return false;
         }
-        player.setBatchEvent(new BatchEvent(player, 500, Formulae.getRepeatTimes(player, 15)) {
+        // Choose how many to identify
+        int maxMake = player.getInventory().countId(item.getID());
+        if (maxMake <= 0) {
+            return false;
+        }
+        String[] countOptions = new String[] {"Identify 1", "Identify 5", "Identify 10", "Identify All"};
+        int choice = showMenu(player, countOptions);
+        if (player.isBusy() || choice < 0 || choice > 3) {
+            return false;
+        }
+        final int batches = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Identify ", "")));
+        player.setBatchEvent(new BatchEvent(player, 500, batches) {
             @Override
             public void action() {
                 if (!owner.getInventory().hasItemId(item.getID())) {
@@ -230,7 +242,18 @@ InvActionExecutiveListener, InvUseOnItemExecutiveListener {
         if (herbDef == null) {
             return false;
         }
-        World.getWorld().getDelayedEventHandler().add(new SingleEvent(player, 1200) {
+        // Choose how many unfinished potions to make
+        int maxMake = Math.min(player.getInventory().countId(vial.getID()), player.getInventory().countId(herb.getID()));
+        if (maxMake <= 0) {
+            return true;
+        }
+        String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+        int choice = showMenu(player, countOptions);
+        if (player.isBusy() || choice < 0 || choice > 3) {
+            return true;
+        }
+        final int batches = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+        player.setBatchEvent(new BatchEvent(player, 1200, batches) {
             @Override
             public void action() {
                 if (owner.getCurStat(15) < herbDef.getReqLevel()) {
@@ -263,7 +286,19 @@ InvActionExecutiveListener, InvUseOnItemExecutiveListener {
         if (unfinished.getID() != def.getUnfinishedID()) {
             return false;
         }
-        World.getWorld().getDelayedEventHandler().add(new SingleEvent(player, 1000) {
+        // Choose how many final potions to make
+        int maxMake = Math.min(player.getInventory().countId(second.getID()), player.getInventory().countId(unfinished.getID()));
+        if (maxMake <= 0) {
+            return false;
+        }
+        String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+        int choice = showMenu(player, countOptions);
+        if (player.isBusy() || choice < 0 || choice > 3) {
+            return false;
+        }
+        final int batches = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+        player.setBatchEvent(new BatchEvent(player, 1000, batches) {
+            @Override
             public void action() {
                 if (owner.getCurStat(15) < def.getReqLevel()) {
                     owner.message("You need a herblaw level of "
@@ -283,7 +318,7 @@ InvActionExecutiveListener, InvUseOnItemExecutiveListener {
                     interrupt();
             }
         });
-        return false;
+        return true;
     }
     // 1052.
     private boolean makeLiquid(Player p, final InvItem ingredient,
@@ -357,14 +392,28 @@ InvActionExecutiveListener, InvUseOnItemExecutiveListener {
         default:
             return false;
         }
-        if (player.getInventory().remove(item) > -1) {
-            if(item.getID() != 983) {
-                player.message("You grind the " + item.getDef().getName()
-                        + " to dust");
+        int maxMake = player.getInventory().countId(item.getID());
+        if (maxMake <= 0) return true;
+        String[] opts = new String[] {"Grind 1", "Grind 5", "Grind 10", "Grind All"};
+        int c = showMenu(player, opts);
+        if (player.isBusy() || c < 0 || c > 3) return true;
+        final int batches = (c == 3 ? maxMake : Integer.parseInt(opts[c].replace("Grind ", "")));
+        final int resultId = newID;
+        player.setBatchEvent(new BatchEvent(player, 500, batches) {
+            @Override
+            public void action() {
+                if (owner.getInventory().remove(item) > -1) {
+                    if(item.getID() != 983) {
+                        owner.message("You grind the " + item.getDef().getName()
+                                + " to dust");
+                    }
+                    showBubble(owner, new InvItem(468));
+                    owner.getInventory().add(new InvItem(resultId, 1));
+                } else {
+                    interrupt();
+                }
             }
-            showBubble(player, new InvItem(468));
-            player.getInventory().add(new InvItem(newID, 1));
-        }
+        });
         return true;
     }
     

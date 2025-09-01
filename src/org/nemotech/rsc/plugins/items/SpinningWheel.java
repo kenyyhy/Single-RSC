@@ -5,6 +5,7 @@ import org.nemotech.rsc.event.impl.BatchEvent;
 import org.nemotech.rsc.client.sound.SoundEffect;
 import static org.nemotech.rsc.plugins.Plugin.message;
 import static org.nemotech.rsc.plugins.Plugin.showBubble;
+import static org.nemotech.rsc.plugins.Plugin.showMenu;
 import org.nemotech.rsc.model.player.InvItem;
 import org.nemotech.rsc.model.GameObject;
 import org.nemotech.rsc.model.player.Player;
@@ -48,7 +49,18 @@ public class SpinningWheel extends Plugin implements InvUseOnObjectListener,
         if (produce == -1 || requirement == -1 || exp == -1) {
             return;
         }
-        player.setBatchEvent(new BatchEvent(player, 650, Formulae.getRepeatTimes(player, CRAFTING)) {
+        // Ask how many to spin
+        int maxMake = player.getInventory().countId(item.getID());
+        if (maxMake <= 0) {
+            return;
+        }
+        String[] countOptions = new String[] {"Make 1", "Make 5", "Make 10", "Make All"};
+        int choice = showMenu(player, countOptions);
+        if (player.isBusy() || choice < 0 || choice > 3) {
+            return;
+        }
+        final int makeCount = (choice == 3 ? maxMake : Integer.parseInt(countOptions[choice].replace("Make ", "")));
+        player.setBatchEvent(new BatchEvent(player, 650, makeCount) {
             @Override
             public void action() {
                 if (owner.getCurStat(CRAFTING) < requirement) {
