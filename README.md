@@ -12,7 +12,7 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
     
 # Game Information
 * UI Fixed
-* Teleports to different areas ::tele <area>
+* Teleports to different areas ::tele area
 * Music player replaced Social tab
 * New dynamic login screen
 * Experience modifier is set at 50x
