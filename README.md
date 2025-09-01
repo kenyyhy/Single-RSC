@@ -1,15 +1,6 @@
 # RSC-Single-Player
 RSC Single Player is a standalone single player RSC reproduction and sandbox. The application handles itself entirely and does not rely on a local server nor database.
 
-# Browser Version (Version 2.4)
-* https://nemotech.org/apps/rsc-js/ (Use username "test" for player account, or username "root" or "zoso" for dev account)
-
-# Latest Downloads
-* [Version 2.4.0 (Jan 14 2020)](https://github.com/sean-niemann/RSC-Single-Player/releases/download/2.4/RSC_Single_Player_v2.4.zip)
-* [Version 2.3.3 (Nov 30 2019)](https://github.com/sean-niemann/RSC-Single-Player/releases/download/2.3.3/RSC_Single_Player_v2.3.3.zip)
-* [Version 2.3.2 (Nov 25 2019)](https://github.com/sean-niemann/RSC-Single-Player/releases/download/2.3.2/RSC_Single_Player_v2.3.2.zip)
-* [Version 2.3.1 (Nov 20 2019)](https://github.com/sean-niemann/RSC-Single-Player/releases/download/2.3.1/RSC_Single_Player_v2.3.1.zip)
-
 # Requirements
 * Java 8 or newer
 
