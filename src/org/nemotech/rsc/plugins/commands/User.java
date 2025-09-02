@@ -12,8 +12,14 @@ public class User extends Plugin implements CommandListener {
         if(command.equals("help")) {
             mudclient.getInstance().showAlert("@yel@Single Player RSC Help % %" +
                 "@whi@Type ::stuck if your character gets stuck. % " +
-                "Type ::pos to list your current location in the world. % " +
+                "Type ::pos (::coords, ::sector) to list your current location. % " +
+                "Type ::bank (::openbank) to open your bank anywhere. % " +
                 "Type ::mapedit to bring up the real time map editor", false);
+            return;
+        }
+        if(command.equals("bank") || command.equals("openbank")) {
+            player.getSender().showBank();
+            player.getSender().sendMessage("You access your bank account");
             return;
         }
         if(command.equals("stuck")) {

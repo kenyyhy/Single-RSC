@@ -17,6 +17,8 @@ public class LoginHandler implements ActionHandler {
             switch (res) {
                 case 3:
                     return 1; // account doesn't exist
+                case 2:
+                    return 2; // hardcore dead / locked
                 default:
                     player.load(username);
                     if(res == 50) {
@@ -39,6 +41,13 @@ public class LoginHandler implements ActionHandler {
             user = user.replace("_", " ");
             File file = new File(Constants.CACHE_DIRECTORY + "players" + File.separator + user.trim() + "_data.dat");
             if(file.exists()) {
+                // Check for hardcore lock state before allowing login
+                try (java.io.ObjectInputStream ois = new java.io.ObjectInputStream(new java.io.FileInputStream(file))) {
+                    org.nemotech.rsc.model.player.SaveFile data = (org.nemotech.rsc.model.player.SaveFile) ois.readObject();
+                    if (data.hardcore && data.hardcoreDead) {
+                        return 2;
+                    }
+                } catch (Exception ignore) {}
                 return 1;
             } else {
                 return 3;

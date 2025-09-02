@@ -543,6 +543,9 @@ public final class Player extends Mob {
      * Amount of fatigue - 0 to 100
      */
     private int fatigue = 7500, tempFatigue = 7500;
+    /** Hardcore mode flags */
+    private boolean hardcore = false;
+    private boolean hardcoreDead = false;
     /**
      * Has the player been registered into the world?
      */
@@ -1034,6 +1037,15 @@ public final class Player extends Mob {
         }
         getSender().sendSound(SoundEffect.DEATH);
         //getSender().sendDied();
+        if (isHardcore()) {
+            // Mark the hardcore character as dead and permanently lock it
+            setHardcoreDead(true);
+            save();
+            getSender().sendMessage("@red@You have died on a Hardcore character.");
+            getSender().sendMessage("@red@This account is now locked and cannot log in.");
+            destroy(true);
+            return;
+        }
         for(int i = 0;i < 18;i++) {
             curStat[i] = maxStat[i];
             getSender().sendStat(i);
@@ -1092,6 +1104,11 @@ public final class Player extends Mob {
         getSender().sendEquipmentStats();
         getSender().sendInventory();
     }
+
+    public boolean isHardcore() { return hardcore; }
+    public void setHardcore(boolean hardcore) { this.hardcore = hardcore; }
+    public boolean isHardcoreDead() { return hardcoreDead; }
+    public void setHardcoreDead(boolean hardcoreDead) { this.hardcoreDead = hardcoreDead; }
 
     public void addAttackedBy(Player p) {
         attackedBy.put(p.getUsernameHash(), System.currentTimeMillis());

@@ -12,7 +12,7 @@ import org.nemotech.rsc.model.player.SaveFile;
 
 public class RegisterHandler implements ActionHandler {
     
-    public boolean handleRegister(String username) {
+    public boolean handleRegister(String username, boolean hardcore) {
         username = username.replace("_", " ");
         File dataFile = new File(Constants.CACHE_DIRECTORY + "players" + File.separator + username + "_data.dat");
         File cacheFile = new File(Constants.CACHE_DIRECTORY + "players" + File.separator + username + "_cache.dat");
@@ -21,6 +21,7 @@ public class RegisterHandler implements ActionHandler {
                 // player data file
                 ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(dataFile));
                 SaveFile playerData = new SaveFile(true);
+                playerData.hardcore = hardcore;
                 oos.writeObject(playerData);
                 oos.close();
                 

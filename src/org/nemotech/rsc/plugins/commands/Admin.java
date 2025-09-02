@@ -310,6 +310,37 @@ public class Admin extends Plugin implements CommandListener {
             return;
         }
 
+        if (command.equals("revivehc") || command.equals("revivehardcore")) {
+            String target = player.getUsername();
+            if (args.length == 1 && args[0] != null && !args[0].trim().isEmpty()) {
+                target = args[0].trim();
+            }
+            try {
+                String uname = target.replace("_", " ");
+                java.io.File file = new java.io.File(org.nemotech.rsc.Constants.CACHE_DIRECTORY + "players" + java.io.File.separator + uname + "_data.dat");
+                if (!file.exists()) {
+                    player.getSender().sendMessage("Account does not exist: " + target);
+                    return;
+                }
+                java.io.ObjectInputStream ois = new java.io.ObjectInputStream(new java.io.FileInputStream(file));
+                org.nemotech.rsc.model.player.SaveFile data = (org.nemotech.rsc.model.player.SaveFile) ois.readObject();
+                ois.close();
+                if (!data.hardcore) {
+                    player.getSender().sendMessage("Account is not hardcore: " + target);
+                    return;
+                }
+                data.hardcoreDead = false;
+                java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(new java.io.FileOutputStream(file));
+                oos.writeObject(data);
+                oos.close();
+                player.getSender().sendMessage("Hardcore revive complete for: " + target);
+            } catch (Exception e) {
+                e.printStackTrace();
+                player.getSender().sendMessage("Failed to revive hardcore account. See console.");
+            }
+            return;
+        }
+
         if(command.equals("appearance")) {
             player.setChangingAppearance(true);
             player.getSender().sendAppearanceScreen();

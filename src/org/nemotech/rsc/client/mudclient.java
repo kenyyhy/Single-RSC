@@ -347,6 +347,7 @@ public class mudclient extends Shell {
     };
     private int controlRegisterStatus;
     private int controlRegisterUser;
+    private int controlRegisterHardcore;
     private int controlRegisterSubmit, controlRegisterCancel;
     public int teleportBubbleType[];
     private Menu panelLoginWelcome;
@@ -902,6 +903,8 @@ public class mudclient extends Shell {
             if (showRightClickMenu && !showOptionMenu) {
                 drawRightClickMenu();
             }
+            // Draw persistent overlays
+            drawHardcoreBadge();
         }
         mouseButtonClick = 0;
     }
@@ -1233,7 +1236,11 @@ public class mudclient extends Shell {
         surface.drawBox(56 + xOff, 167 - i / 2 + yOff, 400, i, 0);
         surface.drawBoxEdge(56 + xOff, 167 - i / 2 + yOff, 400, i, 0xffffff);
         y += 20;
-        surface.drawStringCenter("Welcome to RuneScape " + Util.title(loginUser), 256 + xOff, y, 4, 0xffff00);
+        String welcome = "Welcome to RuneScape " + Util.title(loginUser);
+        if (player != null && player.isHardcore()) {
+            welcome += " [HC]"; // Hardcore badge text
+        }
+        surface.drawStringCenter(welcome, 256 + xOff, y, 4, 0xffff00);
         y += 30;
         String s;
         switch (welcomeLastLoggedInDays) {
@@ -1268,6 +1275,15 @@ public class mudclient extends Shell {
             }
         }
         mouseButtonClick = 0;
+    }
+
+    private void drawHardcoreBadge() {
+        if (player != null && player.isHardcore()) {
+            // Draw a small red "HC" text in the top-left as a badge
+            int x = 8;
+            int y = 18;
+            surface.drawString("HC", x, y, 4, 0xff0000);
+        }
     }
 
     @Override
@@ -1729,6 +1745,10 @@ public class mudclient extends Shell {
         panelRegisterUser.addText(gameWidth / 2, y + 8, "Pick a username:", 4, false);
         controlRegisterUser = panelRegisterUser.addTextInput(gameWidth / 2, y + 24, 240, 34, 4, 12, false, false);
         y += 36;
+        // Hardcore mode checkbox
+        panelRegisterUser.addText(gameWidth / 2 - 80, y + 8, "Hardcore (one life):", 4, false);
+        controlRegisterHardcore = panelRegisterUser.addCheckbox(gameWidth / 2 + 80, y + 8, 20, 20);
+        y += 28;
         panelRegisterUser.addButtonBackground(gameWidth / 2 - 60, y + 17, 100, 25);
         panelRegisterUser.addText(gameWidth / 2 - 60, y + 16, "Create", 4, false);
         controlRegisterSubmit = panelRegisterUser.addButton(gameWidth / 2 - 60, y + 24, 100, 25);
@@ -5567,7 +5587,8 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
                         panelRegisterUser.updateText(controlRegisterStatus, "@red@Username must be at least 3 characters long");
                         return;
                     }
-                    if (ActionManager.get(RegisterHandler.class).handleRegister(user)) {
+                    boolean hardcore = panelRegisterUser.controlListEntryMouseButtonDown[controlRegisterHardcore] == 1;
+                    if (ActionManager.get(RegisterHandler.class).handleRegister(user, hardcore)) {
                         panelRegisterUser.updateText(controlRegisterStatus, "@gre@Account \"" + Util.title(user) + "\" successfully created!");
                     } else {
                         panelRegisterUser.updateText(controlRegisterStatus, "@or2@The username \"" + Util.title(user) + "\" is already in use");
@@ -5608,6 +5629,9 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
                 break;
             case 1:
                 showLoginScreenStatus("", "Account does not exist. To create an account, select 'new user'");
+                break;
+            case 2:
+                showLoginScreenStatus("", "This hardcore account is dead and cannot log in");
                 break;
             default:
                 showLoginScreenStatus("", "Unable to log in. Contact the developer with the stacktrace");
