@@ -4999,6 +4999,14 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
         surface.drawLineVert(uiX + uiWidth / 2, uiY, 24, 0);
         surface.drawStringCenter("Stats", uiX + uiWidth / 4, uiY + 16, 4, 0);
         surface.drawStringCenter("Quests", uiX + uiWidth / 4 + uiWidth / 2, uiY + 16, 4, 0);
+        // Player name header with HC badge
+        String displayName = (localPlayer != null && localPlayer.name != null && localPlayer.name.length() > 0)
+            ? localPlayer.name
+            : (loginUser != null ? Util.title(loginUser) : "Player");
+        if (player != null && player.isHardcore()) {
+            displayName += " [HC]";
+        }
+        surface.drawString("Player: @whi@" + displayName, uiX + 5, uiY + 34, 1, 0xffffff);
         if (uiTabPlayerInfoSubTab == 0) {
             int i1 = 72;
             int k1 = -1;
