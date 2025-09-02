@@ -800,6 +800,14 @@ public class Menu {
         focusControlIndex = control;
     }
 
+    /**
+     * Returns true if the given checkbox control is checked.
+     * This is a small convenience wrapper around the internal state array.
+     */
+    public boolean isChecked(int control) {
+        return controlListEntryMouseButtonDown[control] == 1;
+    }
+
     public int getListEntryIndex(int control) {
         return controlListEntryMouseOver[control];
     }

@@ -348,6 +348,8 @@ public class mudclient extends Shell {
     private int controlRegisterStatus;
     private int controlRegisterUser;
     private int controlRegisterHardcore;
+    private int controlRegisterHardcoreLabel;
+    private boolean controlRegisterHardcoreLastState;
     private int controlRegisterSubmit, controlRegisterCancel;
     public int teleportBubbleType[];
     private Menu panelLoginWelcome;
@@ -1279,10 +1281,12 @@ public class mudclient extends Shell {
 
     private void drawHardcoreBadge() {
         if (player != null && player.isHardcore()) {
-            // Draw a small red "HC" text in the top-left as a badge
-            int x = 8;
-            int y = 18;
-            surface.drawString("HC", x, y, 4, 0xff0000);
+            // Draw a small red "HC" text in the bottom-right as a badge, above the chat bar
+            int margin = 8;
+            int bottomUiOffset = 20; // height offset used by bottom UI bar
+            int xRight = gameWidth - margin;
+            int yBottom = gameHeight - margin - bottomUiOffset;
+            surface.drawStringRight("HC", xRight, yBottom, 4, 0xff0000);
         }
     }
 
@@ -1745,9 +1749,14 @@ public class mudclient extends Shell {
         panelRegisterUser.addText(gameWidth / 2, y + 8, "Pick a username:", 4, false);
         controlRegisterUser = panelRegisterUser.addTextInput(gameWidth / 2, y + 24, 240, 34, 4, 12, false, false);
         y += 36;
-        // Hardcore mode checkbox
-        panelRegisterUser.addText(gameWidth / 2 - 80, y + 8, "Hardcore (one life):", 4, false);
-        controlRegisterHardcore = panelRegisterUser.addCheckbox(gameWidth / 2 + 80, y + 8, 20, 20);
+        // Hardcore mode checkbox at original spot with a single white explanatory line next to it
+        int hcCheckX = gameWidth / 2 + 100;
+        int hcCheckY = y + 8;
+        controlRegisterHardcore = panelRegisterUser.addCheckbox(hcCheckX, hcCheckY, 20, 20);
+        // Shift text ~140px left from checkbox to avoid overlap
+        int hcTextX = hcCheckX - 130;
+        controlRegisterHardcoreLabel = panelRegisterUser.addText(hcTextX, hcCheckY + 12, "Hardcore: OFF - One life; death deletes save.", 1, true);
+        controlRegisterHardcoreLastState = false;
         y += 28;
         panelRegisterUser.addButtonBackground(gameWidth / 2 - 60, y + 17, 100, 25);
         panelRegisterUser.addText(gameWidth / 2 - 60, y + 16, "Create", 4, false);
@@ -5570,7 +5579,8 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
                     loginScreen = 1;
                     panelRegisterUser.updateText(controlRegisterStatus, "@dre@Read this before creating an account");
                     panelRegisterUser.updateText(controlRegisterUser, "");
-                    panelLoginExistingUser.setFocus(controlRegisterUser);
+                    // Focus should be set on the register panel, not the existing-user panel
+                    panelRegisterUser.setFocus(controlRegisterUser);
                 }   if (panelLoginWelcome.isClicked(controlWelcomeExistingUser)) {
                     loginScreen = 2;
                     panelLoginExistingUser.updateText(controlLoginStatus1, "");
@@ -5581,6 +5591,14 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
                 break;
             case 1:
                 panelRegisterUser.handleMouse(super.mouseX, super.mouseY, super.lastMouseButtonDown, super.mouseButtonDown);
+                // Live-update Hardcore label to reflect checkbox state
+                boolean hcNow = panelRegisterUser.isChecked(controlRegisterHardcore);
+                if (hcNow != controlRegisterHardcoreLastState) {
+                    panelRegisterUser.updateText(controlRegisterHardcoreLabel,
+                            hcNow ? "Hardcore: ON - One life; death deletes save." :
+                                    "Hardcore: OFF - One life; death deletes save.");
+                    controlRegisterHardcoreLastState = hcNow;
+                }
                 if (panelRegisterUser.isClicked(controlRegisterCancel)) {
                     loginScreen = 0;
                 }
@@ -5595,9 +5613,13 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
                         panelRegisterUser.updateText(controlRegisterStatus, "@red@Username must be at least 3 characters long");
                         return;
                     }
-                    boolean hardcore = panelRegisterUser.controlListEntryMouseButtonDown[controlRegisterHardcore] == 1;
+                    boolean hardcore = panelRegisterUser.isChecked(controlRegisterHardcore);
                     if (ActionManager.get(RegisterHandler.class).handleRegister(user, hardcore)) {
-                        panelRegisterUser.updateText(controlRegisterStatus, "@gre@Account \"" + Util.title(user) + "\" successfully created!");
+                        if (hardcore) {
+                            panelRegisterUser.updateText(controlRegisterStatus, "@gre@Account \"" + Util.title(user) + "\" successfully created as @red@HARDCORE@gre@!");
+                        } else {
+                            panelRegisterUser.updateText(controlRegisterStatus, "@gre@Account \"" + Util.title(user) + "\" successfully created!");
+                        }
                     } else {
                         panelRegisterUser.updateText(controlRegisterStatus, "@or2@The username \"" + Util.title(user) + "\" is already in use");
                     }

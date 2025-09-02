@@ -6,6 +6,7 @@ import org.nemotech.rsc.Constants;
 import org.nemotech.rsc.model.player.Player;
 import org.nemotech.rsc.model.World;
 import org.nemotech.rsc.client.action.ActionHandler;
+import org.nemotech.rsc.client.action.ActionManager;
 
 public class LoginHandler implements ActionHandler {
 
@@ -16,7 +17,15 @@ public class LoginHandler implements ActionHandler {
             int res = getLogin(username);
             switch (res) {
                 case 3:
-                    return 1; // account doesn't exist
+                    // Auto-create a fresh non-hardcore account when missing
+                    boolean created = org.nemotech.rsc.client.action.ActionManager
+                            .get(RegisterHandler.class)
+                            .handleRegister(username.toLowerCase().trim(), true);
+                    if (created) {
+                        player.load(username);
+                        return 0;
+                    }
+                    return 1; // fall back: couldn't create
                 case 2:
                     return 2; // hardcore dead / locked
                 default:

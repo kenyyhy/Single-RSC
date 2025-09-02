@@ -1038,11 +1038,24 @@ public final class Player extends Mob {
         getSender().sendSound(SoundEffect.DEATH);
         //getSender().sendDied();
         if (isHardcore()) {
-            // Mark the hardcore character as dead and permanently lock it
-            setHardcoreDead(true);
-            save();
+            // Hardcore death: delete this character's save files
+            try {
+                String fileUser = this.username.toLowerCase(java.util.Locale.ROOT);
+                String[] bases = new String[] { org.nemotech.rsc.Constants.CACHE_DIRECTORY, org.nemotech.rsc.Constants.SAVE_DIRECTORY };
+                String[] filenames = new String[] { fileUser + "_cache.dat", fileUser + "_data.dat" };
+                for (String base : bases) {
+                    for (String name : filenames) {
+                        java.io.File f = resolvePlayerFile(base, name);
+                        if (f != null && f.exists()) {
+                            try { f.delete(); } catch (Throwable ignore) {}
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
             getSender().sendMessage("@red@You have died on a Hardcore character.");
-            getSender().sendMessage("@red@This account is now locked and cannot log in.");
+            getSender().sendMessage("@red@Your Hardcore save has been deleted.");
             destroy(true);
             return;
         }
