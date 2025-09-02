@@ -12,7 +12,7 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
     
 # Game Information
 * UI Fixed
-* Open Bank anywhere by ::bank you can disable this if you want
+* Open Bank anywhere by ::bank 
 * Teleports to different areas ::tele area
 * Batched Skills similar to Openrsc's Cabbage
 * Music player replaced Social tab
