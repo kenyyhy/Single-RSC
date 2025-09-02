@@ -198,6 +198,15 @@ public final class FightEvent extends DelayedEvent {
     }
     
     protected static void onDeath(Mob killed, Mob killer) {
+        // Special-case: Hardcore player death logs out and destroys the character.
+        // Avoid further combat resets on a player that is being unregistered to prevent race/NPE.
+        if (killed instanceof org.nemotech.rsc.model.player.Player) {
+            org.nemotech.rsc.model.player.Player kp = (org.nemotech.rsc.model.player.Player) killed;
+            if (kp.isHardcore()) {
+                killed.killedBy(killer);
+                return;
+            }
+        }
         if (killer instanceof Player && killed instanceof NPC) {
             if (PluginManager.getInstance().blockDefaultAction("PlayerKilledNpc", new Object[] { ((Player) killer), ((NPC) killed) })) {
                 return;

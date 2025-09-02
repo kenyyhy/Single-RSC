@@ -38,9 +38,18 @@ public class MiscUpdater extends Updater {
         mc.showAlert(message, big);
     }
     
+    /**
+     * Initiate logout: immediate for hardcore death, delayed for normal logout.
+     */
     public void sendLogout() {
-        mc.logoutTimeout = 1000; // fix?
-        World.getWorld().unregisterPlayer(player);
+        // Hardcore death uses skipSaveOnUnregister to signal immediate logout
+        if (player.shouldSkipSaveOnUnregister()) {
+            // Immediate unregister: back to login screen without delay
+            World.getWorld().unregisterPlayer(player);
+        } else {
+            // Show logout dialog for non-hardcore logout
+            mc.logoutTimeout = 1000;
+        }
     }
     
     public void sendStat(int stat) {

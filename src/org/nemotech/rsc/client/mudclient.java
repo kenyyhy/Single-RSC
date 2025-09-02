@@ -3568,6 +3568,8 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
     }
 
     private void drawGame() {
+        // Disabled built-in death screen to avoid freeze; immediate respawn handled by server
+        /*
         if (deathScreenTimeout != 0) {
             surface.fadePixels();
             surface.drawStringCenter("Oh dear! You are dead...", gameWidth / 2, gameHeight / 2, 7, 0xff0000);
@@ -3575,6 +3577,7 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
             surface.draw(graphics, 0, 0);
             return;
         }
+        */
         if (showAppearanceChange) {
             drawAppearancePanelCharacterSprites();
             return;

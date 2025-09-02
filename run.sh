@@ -10,5 +10,5 @@ if [[ ! -f "$JAR" ]]; then
   JAR="$SCRIPT_DIR/rsc.jar"
 fi
 
-exec java -jar "$JAR" "$@"
+exec java -cp "$JAR:$SCRIPT_DIR/lib/gson-2.6.2.jar" org.nemotech.rsc.Main "$@"
 

@@ -388,7 +388,10 @@ public class World {
         try {
             player.setLoggedIn(false);
             player.reset();
-            player.save();
+            // Avoid rewriting a save that was intentionally deleted (e.g., Hardcore death)
+            if (!player.shouldSkipSaveOnUnregister()) {
+                player.save();
+            }
             Mob opponent = player.getOpponent();
             if (opponent != null) {
                 player.resetCombat(CombatState.ERROR);

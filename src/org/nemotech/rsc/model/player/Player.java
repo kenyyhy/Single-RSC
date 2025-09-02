@@ -546,6 +546,8 @@ public final class Player extends Mob {
     /** Hardcore mode flags */
     private boolean hardcore = false;
     private boolean hardcoreDead = false;
+    /** When true, do not write the save file during unregister (e.g., HC death). */
+    private boolean skipSaveOnUnregister = false;
     /**
      * Has the player been registered into the world?
      */
@@ -1032,60 +1034,96 @@ public final class Player extends Mob {
     @Override
     public void killedBy(Mob mob) {
         Mob opponent = super.getOpponent();
-        if(opponent != null) {
+        if (opponent != null) {
             opponent.resetCombat(CombatState.WON);
         }
         getSender().sendSound(SoundEffect.DEATH);
-        //getSender().sendDied();
         if (isHardcore()) {
-            // Hardcore death: delete this character's save files
+            // Hardcore death: delete save and perform death sequence, then logout
             try {
+                setHardcoreDead(true);
+                skipSaveOnUnregister = true;
                 String fileUser = this.username.toLowerCase(java.util.Locale.ROOT);
-                String[] bases = new String[] { org.nemotech.rsc.Constants.CACHE_DIRECTORY, org.nemotech.rsc.Constants.SAVE_DIRECTORY };
-                String[] filenames = new String[] { fileUser + "_cache.dat", fileUser + "_data.dat" };
-                for (String base : bases) {
-                    for (String name : filenames) {
-                        java.io.File f = resolvePlayerFile(base, name);
-                        if (f != null && f.exists()) {
-                            try { f.delete(); } catch (Throwable ignore) {}
-                        }
-                    }
-                }
+                deleteAllPlayerSaveFiles(fileUser);
             } catch (Throwable t) {
                 t.printStackTrace();
             }
+            // Reset stats and send to client
+            for (int i = 0; i < 18; i++) {
+                curStat[i] = maxStat[i];
+                getSender().sendStat(i);
+            }
+            // Drop items
+            dropItemsOnDeath();
+            // Send UI updates
+            getSender().sendWorldInfo();
+            getSender().sendEquipmentStats();
+            getSender().sendInventory();
+            getSender().sendStats();
+            getSender().sendGameSettings();
+            getSender().sendCombatStyle();
+            getSender().sendFatigue(getFatigue());
             getSender().sendMessage("@red@You have died on a Hardcore character.");
             getSender().sendMessage("@red@Your Hardcore save has been deleted.");
-            destroy(true);
+            // Exit the game immediately after deleting save files
+            System.exit(0);
             return;
         }
-        for(int i = 0;i < 18;i++) {
+        // Standard death sequence for non-hardcore
+        for (int i = 0; i < 18; i++) {
             curStat[i] = maxStat[i];
             getSender().sendStat(i);
         }
+        dropItemsOnDeath();
+        // Respawn at appropriate spawn point
+        boolean inTutorial = getLocation().inTutorialLanding();
+        Point spawn = inTutorial ? new Point(224, 732) : new Point(122, 647);
+        setLocation(spawn, true);
+        // Notify watchers
+        Collection<Player> allWatched = watchedPlayers.getAllEntities();
+        for (Player p : allWatched) {
+            p.removeWatchedPlayer(this);
+        }
+        resetPath();
+        resetCombat(CombatState.LOST);
+        // Refresh client
+        getSender().sendWorldInfo();
+        getSender().sendEquipmentStats();
+        getSender().sendInventory();
+        getSender().sendStats();
+        getSender().sendGameSettings();
+        getSender().sendCombatStyle();
+        getSender().sendFatigue(getFatigue());
+    }
 
-        // Only drop items if the player dies in the wilderness
+    /**
+     * Drops inventory on death in wilderness, clears prayers and skull.
+     */
+    private void dropItemsOnDeath() {
         if (getLocation().inWilderness()) {
             inventory.sort();
             ListIterator<InvItem> iterator = inventory.iterator();
-            if(!isSkulled()) {
-                for(int i = 0;i < 3 && iterator.hasNext();i++) {
-                    if((iterator.next()).getDef().isStackable()) {
+            if (!isSkulled()) {
+                for (int i = 0; i < 3 && iterator.hasNext(); i++) {
+                    if (iterator.next().getDef().isStackable()) {
                         iterator.previous();
                         break;
                     }
                 }
             }
-            if(activatedPrayers[8] && iterator.hasNext()) {
-                if(((InvItem)iterator.next()).getDef().isStackable()) {
+            if (activatedPrayers[8] && iterator.hasNext()) {
+                if (iterator.next().getDef().isStackable()) {
                     iterator.previous();
                 }
             }
-            for(int slot = 0;iterator.hasNext();slot++) {
-                InvItem item = (InvItem)iterator.next();
-                if(item.isWielded()) {
+            while (iterator.hasNext()) {
+                InvItem item = iterator.next();
+                if (item.isWielded()) {
                     item.setWield(false);
-                    updateWornItems(item.getWieldableDef().getWieldPos(), appearance.getSprite(item.getWieldableDef().getWieldPos()));
+                    updateWornItems(
+                        item.getWieldableDef().getWieldPos(),
+                        appearance.getSprite(item.getWieldableDef().getWieldPos())
+                    );
                 }
                 iterator.remove();
                 world.registerItem(new Item(item.getID(), getX(), getY(), item.getAmount(), null));
@@ -1093,35 +1131,53 @@ public final class Player extends Mob {
         }
         removeSkull();
         world.registerItem(new Item(20, getX(), getY(), 1, null));
-
-        for(int x = 0;x < activatedPrayers.length;x++) {
-            if(activatedPrayers[x]) {
+        for (int x = 0; x < activatedPrayers.length; x++) {
+            if (activatedPrayers[x]) {
                 removePrayerDrain(x);
                 activatedPrayers[x] = false;
             }
         }
         getSender().sendPrayers();
-        
-        boolean inTutorial = getLocation().inTutorialLanding();
-        Point spawn = inTutorial ? new Point(224, 732) : new Point(122, 647);
-        setLocation(spawn, true);
-        
-        Collection<Player> allWatched = watchedPlayers.getAllEntities();
-        for (Player p : allWatched) {
-            p.removeWatchedPlayer(this);
-        }
-
-        resetPath();
-        resetCombat(CombatState.LOST);
-        getSender().sendWorldInfo();
-        getSender().sendEquipmentStats();
-        getSender().sendInventory();
     }
 
     public boolean isHardcore() { return hardcore; }
     public void setHardcore(boolean hardcore) { this.hardcore = hardcore; }
     public boolean isHardcoreDead() { return hardcoreDead; }
     public void setHardcoreDead(boolean hardcoreDead) { this.hardcoreDead = hardcoreDead; }
+    public boolean shouldSkipSaveOnUnregister() { return skipSaveOnUnregister; }
+
+    // Delete known save files for this username from potential locations (non-blocking minimal scan).
+    private static void deleteAllPlayerSaveFiles(String fileUser) {
+        String[] bases = new String[] { org.nemotech.rsc.Constants.CACHE_DIRECTORY, org.nemotech.rsc.Constants.SAVE_DIRECTORY };
+        String[] targets = new String[] { fileUser + "_cache.dat", fileUser + "_data.dat" };
+        for (String base : bases) {
+            java.io.File dir = new java.io.File(base, "players");
+            if (!dir.isDirectory()) {
+                continue;
+            }
+            for (String target : targets) {
+                // Attempt exact match first
+                java.io.File fileExact = new java.io.File(dir, target);
+                try {
+                    if (fileExact.exists()) {
+                        fileExact.delete();
+                        continue;
+                    }
+                } catch (Throwable ignore) {
+                }
+                // Fallback: case-insensitive match in directory
+                java.io.File[] files = dir.listFiles();
+                if (files == null) {
+                    continue;
+                }
+                for (java.io.File f : files) {
+                    if (f.getName().equalsIgnoreCase(target)) {
+                        try { f.delete(); } catch (Throwable ignore) {}
+                    }
+                }
+            }
+        }
+    }
 
     public void addAttackedBy(Player p) {
         attackedBy.put(p.getUsernameHash(), System.currentTimeMillis());

@@ -39,13 +39,20 @@ public class EngineThread extends Thread {
     public void run() {
         running = true;
         
+        // Periodic auto-save (skip for hardcore characters flagged for deletion)
         eventHandler.add(new DelayedEvent(null, 20 * 1000) { /* 20 seconds */
             @Override
             public void run() {
                 Player player = world.getPlayer();
-                if(player != null && player.isLoggedIn()) {
-                    player.save();
-                    //System.out.println(player.getUsername() + "'s character was automatically saved");
+                // Only save if logged in and not marked to skip save (e.g., hardcore death)
+                if (player != null && player.isLoggedIn() && !player.shouldSkipSaveOnUnregister()) {
+                    try {
+                        player.save();
+                        //System.out.println(player.getUsername() + "'s character was automatically saved");
+                    } catch (Throwable t) {
+                        // Prevent auto-save from crashing the engine
+                        t.printStackTrace();
+                    }
                 }
             }
         });
@@ -53,7 +60,9 @@ public class EngineThread extends Thread {
         eventHandler.add(new DelayedEvent(null, 1 * 500) { /* 500 ms */
             @Override
             public void run() {
-                if(World.getWorld().getPlayer().isLoggedIn()) {
+                // Avoid NPE when no player (e.g., hardcore death)
+                org.nemotech.rsc.model.player.Player player = world.getPlayer();
+                if (player != null && player.isLoggedIn()) {
                     checkMusicChange();
                 }
             }

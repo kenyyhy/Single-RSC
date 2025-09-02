@@ -75,7 +75,8 @@ public class ClientUpdater {
      */
     public void checkIfPlayerIsDestroyed() {
         Player p = World.getWorld().getPlayer();
-        if(p.destroyed() && !loggedOut) {
+        // Guard against null player (e.g., after hardcore death unregister)
+        if (p != null && p.destroyed() && !loggedOut) {
             p.remove();
             loggedOut = true;
         }
