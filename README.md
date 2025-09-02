@@ -6,12 +6,13 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
 * Java 8 or newer
 
 # Instructions
-* To launch you can either double click the 'RSC-Single-Player.jar' file, or use the run.bat (Windows) or run.sh (Unix)
+* To launch you can either double click the 'rsc.jar' file, or use the run.bat (Windows) or run.sh (Unix)
 * To create a new account, click the "New User" button and fill out the information below
 * Login and play
     
 # Game Information
 * UI Fixed
+* Open Bank anywhere by ::bank 
 * Teleports to different areas ::tele area
 * Batched Skills similar to Openrsc's Cabbage
 * Music player replaced Social tab
