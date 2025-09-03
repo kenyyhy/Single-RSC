@@ -2336,8 +2336,9 @@ public class mudclient extends Shell {
         loggedIn = 0;
         logoutTimeout = 0;
         tempDimension = new Dimension(gameWidth, gameHeight);
-        application.setResizable(false);
-        application.setSize(Constants.APPLICATION_WIDTH, Constants.APPLICATION_HEIGHT);
+        // Allow window resizing on login screen and restore previous size
+        application.setResizable(Constants.APPLICATION_RESIZABLE);
+        application.setSize(tempDimension.width, tempDimension.height);
         application.setLocationRelativeTo(null);
     }
 
@@ -4287,9 +4288,9 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
     
     public boolean hasLoggedIn = false;
 
-	private void drawLoadingScreen() {
+    private void drawLoadingScreen() {
         loginCamRotation++;
-		surface.removeAllPixels();
+        surface.removeAllPixels();
         int x = cameraAutoRotatePlayerX + cameraRotationX;
         int y = cameraAutoRotatePlayerY + cameraRotationY;
         if(!hasLoggedIn) {
@@ -4297,9 +4298,9 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
             y = 9200;
         }
         scene.setCamera(x, -world.getAveragedElevation(x, y), y, cameraPitch, loginCamRotation, 0, 1600);
-		scene.render();
-		surface.drawSprite((gameWidth / 2 - 241), (gameHeight / 2) - 190, spriteMedia + 10);
-	}
+        scene.render();
+        // RS2 logo removed to declutter login screen
+    }
 
     private void drawLoginScreens() {
         welcomScreenAlreadyShown = false;

@@ -61,7 +61,7 @@ public abstract class Shell extends Panel implements Runnable, MouseListener, Mo
     protected boolean resized = true;
     
     protected void doResize(int width, int height) {
-        synchronized(dimension) {
+        synchronized (dimension) {
             dimension.width = width;
             dimension.height = height;
             resized = false;
@@ -91,6 +91,8 @@ public abstract class Shell extends Panel implements Runnable, MouseListener, Mo
         panelWidth = Constants.APPLICATION_WIDTH;
         panelHeight = Constants.APPLICATION_HEIGHT;
         application = new Application(this);
+        // Initialize initial resize dimensions (content area size)
+        doResize(panelWidth, panelHeight);
         application.addMouseListener(this);
         application.addMouseMotionListener(this);
         application.addKeyListener(this);

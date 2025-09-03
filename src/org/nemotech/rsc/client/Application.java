@@ -38,12 +38,14 @@ public class Application extends Frame {
                 shell.closeProgram();
             }
         });
-        if(Constants.APPLICATION_RESIZABLE) {
+        if (Constants.APPLICATION_RESIZABLE) {
             addComponentListener(new ComponentAdapter() {
                 @Override
                 public void componentResized(ComponentEvent e) {
-                    int width = getWidth();
-                    int height = getHeight();
+                    // Compute the actual content area dimensions (subtract window insets)
+                    Insets insets = getInsets();
+                    int width = getWidth() - insets.left - insets.right;
+                    int height = getHeight() - insets.top - insets.bottom;
                     shell.doResize(width, height);
                 }
             });
@@ -53,13 +55,23 @@ public class Application extends Frame {
     @Override
     public Graphics getGraphics() {
         Graphics graphics = super.getGraphics();
-        graphics.translate(0, 22);
+        // Translate graphics context to the top-left of the content area
+        Insets insets = getInsets();
+        graphics.translate(insets.left, insets.top);
         return graphics;
     }
 
     @Override
-    public void setSize(int x, int y) {
-        super.setSize(x, y + 32);
+    public void setSize(int width, int height) {
+        Insets insets = getInsets();
+        if (insets != null) {
+            super.setSize(
+                width + insets.left + insets.right,
+                height + insets.top + insets.bottom
+            );
+        } else {
+            super.setSize(width, height);
+        }
     }
 
     @Override
