@@ -17,7 +17,7 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
 * Batched Skills similar to Openrsc's Cabbage
 * Music player replaced Social tab
 * New dynamic login screen
-* Harcore enabled after you die it takes away your save file and closes the client if you open back up and login again to start over. 
+* Harcore can be toggled and enabled after you die it takes away your save file and closes the client if you open back up and login again to start over. 
 * Experience modifier is set at 1x-50x
 * All content, including all 50 quests
 * Updated where every os that has java 8 will be able to save the game properly
