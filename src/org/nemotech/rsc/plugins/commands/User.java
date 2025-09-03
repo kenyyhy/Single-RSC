@@ -4,9 +4,34 @@ import org.nemotech.rsc.client.mudclient;
 import org.nemotech.rsc.model.player.Player;
 import org.nemotech.rsc.plugins.Plugin;
 import org.nemotech.rsc.plugins.listeners.action.CommandListener;
+import java.util.Map;
+import java.util.HashMap;
+import org.nemotech.rsc.model.Point;
 
 public class User extends Plugin implements CommandListener {
 
+    // Map of major town teleport locations
+    private static final Map<String, Point> TOWNS = new HashMap<String, Point>() {{
+        put("varrock",    new Point(122, 509));
+        put("falador",    new Point(304, 542));
+        put("draynor",    new Point(214, 632));
+        put("portsarim",  new Point(269, 643));
+        put("karamja",    new Point(370, 685));
+        put("alkharid",   new Point(89,  693));
+        put("lumbridge",  new Point(120, 648));
+        put("edgeville",  new Point(217, 449));
+        put("taverly",    new Point(373, 498));
+        put("seers",      new Point(501, 450));
+        put("seers village", new Point(501, 450));
+        put("barbarian",  new Point(233, 513));
+        put("rimmington", new Point(325, 663));
+        put("catherby",   new Point(440, 501));
+        put("ardougne",   new Point(549, 589));
+        put("yanille",    new Point(583, 747));
+        put("lostcity",   new Point(127, 3518));
+        put("gnome",      new Point(703, 527));
+        put("tutorial",   new Point(219, 742));
+    }};
     @Override
     public void onCommand(String command, String[] args, Player player) {
         if(command.equals("help")) {
@@ -56,6 +81,22 @@ public class User extends Plugin implements CommandListener {
             return;
         }
 
+        // teleport to major cities
+        if (command.equals("tele")) {
+            // Usage: ::tele <location>
+            if (args.length != 1) {
+                player.getSender().sendMessage("Syntax: ::tele <location>");
+                return;
+            }
+            String key = args[0].toLowerCase();
+            Point loc = TOWNS.get(key);
+            if (loc != null) {
+                player.teleport(loc.getX(), loc.getY(), true);
+            } else {
+                player.getSender().sendMessage("Invalid location!");
+            }
+            return;
+        }
         // speed commands removed
     }
 

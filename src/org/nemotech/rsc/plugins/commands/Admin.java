@@ -374,16 +374,28 @@ public class Admin extends Plugin implements CommandListener {
         }
         
         if(command.equals("teleport") || command.equals("tele")) {
-            if(args.length != 2) {
-                player.getSender().sendMessage("Syntax: ::tele <x> <y>");
-                return;
-            }
-            int x = Integer.parseInt(args[0]);
-            int y = Integer.parseInt(args[1]);
-            if(World.getWorld().withinWorld(x, y)) {
-                player.teleport(x, y, true);
+            if(args.length == 1) {
+                String key = args[0].toLowerCase();
+                Point town = TOWNS.get(key);
+                if(town != null) {
+                    player.teleport(town.getX(), town.getY(), true);
+                } else {
+                    player.getSender().sendMessage("Invalid location!");
+                }
+            } else if(args.length == 2) {
+                try {
+                    int x = Integer.parseInt(args[0]);
+                    int y = Integer.parseInt(args[1]);
+                    if(World.getWorld().withinWorld(x, y)) {
+                        player.teleport(x, y, true);
+                    } else {
+                        player.getSender().sendMessage("Invalid coordinates!");
+                    }
+                } catch(NumberFormatException e) {
+                    player.getSender().sendMessage("Syntax: ::tele <x> <y> or ::tele <location>");
+                }
             } else {
-                player.getSender().sendMessage("Invalid coordinates!");
+                player.getSender().sendMessage("Syntax: ::tele <x> <y> or ::tele <location>");
             }
             return;
         }
@@ -501,6 +513,8 @@ public class Admin extends Plugin implements CommandListener {
         put("edgeville", new Point(217, 449));
         put("taverly",   new Point(373, 498));
         put("seers",     new Point(501, 450));
+        // alias for Seers' Village teleport
+        put("seersvillage", new Point(501, 450));
         put("barbarian", new Point(233, 513));
         put("rimmington",new Point(325, 663));
         put("catherby",  new Point(440, 501));
