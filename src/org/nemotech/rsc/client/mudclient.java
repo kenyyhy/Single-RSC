@@ -4368,9 +4368,9 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
         }
         y += 15;
         if (optionMusicAuto) {
-            surface.drawString("Regional Music - @gre@On", x, y, 1, 0xffffff);
+            surface.drawString("Player Name: " + localPlayer.name + " @gre@", x, y, 1, 0xffffff);
         } else {
-            surface.drawString("Regional Music - @red@Off", x, y, 1, 0xffffff);
+            surface.drawString("Player Name: " + localPlayer.name + " - @red@Off", x, y, 1, 0xffffff);
         }
         y += 15;
         y += 5;
@@ -5013,13 +5013,7 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
         surface.drawStringCenter("Stats", uiX + uiWidth / 4, uiY + 16, 4, 0);
         surface.drawStringCenter("Quests", uiX + uiWidth / 4 + uiWidth / 2, uiY + 16, 4, 0);
         // Player name header with HC badge
-        String displayName = (localPlayer != null && localPlayer.name != null && localPlayer.name.length() > 0)
-            ? localPlayer.name
-            : (loginUser != null ? Util.title(loginUser) : "Player");
-        if (player != null && player.isHardcore()) {
-            displayName += " [HC]";
-        }
-        surface.drawString("Player: @whi@" + displayName, uiX + 5, uiY + 34, 1, 0xffffff);
+        
         if (uiTabPlayerInfoSubTab == 0) {
             int i1 = 72;
             int k1 = -1;
@@ -5098,10 +5092,19 @@ OUTER:		for (int animationIndex = 0; animationIndex < EntityManager.getAnimation
         }
         if (uiTabPlayerInfoSubTab == 1) {
             panelQuestList.clearList(controlListQuest);
-            panelQuestList.addListEntry(controlListQuest, 0, "@whi@Quest-list (green=completed)");
+            
             int index = 0;
             for (int questIdx : newQuestNames.keySet()) {
-                panelQuestList.addListEntry(controlListQuest, index++, (questStage.get(questIdx) == 0 ? "@red@" : questStage.get(questIdx) > 0 ? "@yel@" : "@gre@") + newQuestNames.get(questIdx));
+                String questName = newQuestNames.get(questIdx);
+                int stage = questStage.getOrDefault(questIdx, 0); // Default to 0 if not found
+                if (stage == 2) { // Completed
+                    questName = "@gre@" + questName;
+                } else if (stage == 1) { // Started
+                    questName = "@yel@" + questName;
+                } else { // Not started
+                    questName = "@red@" + questName;
+                }
+                panelQuestList.addListEntry(controlListQuest, index++, questName);
             }
             panelQuestList.drawPanel();
         }
