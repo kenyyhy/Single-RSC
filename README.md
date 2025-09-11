@@ -15,6 +15,8 @@ RSC Single Player is a standalone single player RSC reproduction and sandbox. Th
 * Open Bank anywhere by ::bank 
 * Teleports to different areas ::tele area
 * Batched Skills similar to Openrsc's Cabbage
+* Hardcore mode available
+* Bobs Axes shop has Bronze, Iron, Steel, and Rune Axes and Bronze to Rune Pickaxes
 * New dynamic login screen
 * Harcore can be toggled and enabled after you die it takes away your save file and closes the client if you open back up and login again to start over. 
 * Experience modifier is set at 1x-50x
