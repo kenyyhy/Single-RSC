@@ -216,6 +216,10 @@ If you’d like to propose improvements (e.g., configuration toggles, new batchi
 ---
 
 ## License
-(If you have a preferred license—MIT, GPL, etc.—we can add it here. Currently unspecified.)
+This project is licensed under the GNU General Public License v3.0. See the [GPL-3.0](LICENSE) file for the complete license text.
+
+**Note:** RuneScape is a trademark of Jagex Ltd. This project is a non-commercial preservation and educational effort.
+
+**For Contributors:** Please ensure that any derivative works remain GPL-compliant.
 
 ---
