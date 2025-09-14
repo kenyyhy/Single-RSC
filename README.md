@@ -216,6 +216,6 @@ If you’d like to propose improvements (e.g., configuration toggles, new batchi
 ---
 
 ## License
-(If you have a preferred license—MIT, GPL, etc.—we can add it here. Currently unspecified.)
+GPL v3.0 (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 ---
