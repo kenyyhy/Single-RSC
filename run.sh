@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -x
 
 # Determine script directory and switch to it
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,5 +28,4 @@ rm -f "$JAR"
 jar cfm "$JAR" META-INF/MANIFEST.MF -C "$BUILD_DIR" .
 rm -rf "$BUILD_DIR"
 
-exec java -jar rsc.jar
-
+exec java --enable-preview -jar rsc.jar
