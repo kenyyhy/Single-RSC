@@ -27,5 +27,5 @@ rm -f "$JAR"
 jar cfm "$JAR" META-INF/MANIFEST.MF -C "$BUILD_DIR" .
 rm -rf "$BUILD_DIR"
 
-exec java --enable-preview --source 17 -jar rsc.jar
+exec java -jar rsc.jar
 
