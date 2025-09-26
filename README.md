@@ -34,6 +34,8 @@ Core:
 - Fully fixed UI with window resizing support (choose preferred dimensions)
 - Dynamic login screen
 - Multi-account capable (see notes below)
+- If you want to be not hardcore make sure to actually click on new account and make sure to not check hardcore.
+- If you bypass the create account and just login it may not do what you want. 
 
 Quality of Life:
 - Bank accessible anywhere via `::bank`
